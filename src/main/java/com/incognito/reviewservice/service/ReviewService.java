@@ -46,7 +46,7 @@ public class ReviewService {
         return mapToReviewResponse(savedReview);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ReviewResponse getReviewById(Long id) {
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
@@ -115,7 +115,7 @@ public class ReviewService {
                 .id(review.getId())
                 .reviewType(review.getReviewType())
                 .title(review.getTitle())
-                .content(review.getContentHtml())
+                .contentHtml(review.getContentHtml())
                 .ipAddress(review.getIpAddress())
                 .likeCount(review.getLikeCount())
                 .dislikeCount(review.getDislikeCount())

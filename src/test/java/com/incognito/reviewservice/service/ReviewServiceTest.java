@@ -88,7 +88,7 @@ class ReviewServiceTest {
         assertNotNull(reviewResponse);
         assertEquals(review.getReviewType(), reviewResponse.getReviewType());
         assertEquals(review.getTitle(), reviewResponse.getTitle());
-        assertEquals(review.getContentHtml(), reviewResponse.getContent()); // Assuming ReviewResponse maps contentHtml to content
+        assertEquals(review.getContentHtml(), reviewResponse.getContentHtml()); // Assuming ReviewResponse maps contentHtml to content
         assertEquals(review.getIpAddress(), reviewResponse.getIpAddress());
         assertEquals(review.getIsEmployee(), reviewResponse.getIsEmployee());
         assertEquals(review.getDept(), reviewResponse.getDept());
@@ -114,7 +114,7 @@ class ReviewServiceTest {
         assertEquals(review.getId(), reviewResponse.getId());
         assertEquals(review.getReviewType(), reviewResponse.getReviewType());
         assertEquals(review.getTitle(), reviewResponse.getTitle());
-        assertEquals(review.getContentHtml(), reviewResponse.getContent());
+        assertEquals(review.getContentHtml(), reviewResponse.getContentHtml());
         assertEquals(review.getIpAddress(), reviewResponse.getIpAddress());
         assertEquals(review.getIsEmployee(), reviewResponse.getIsEmployee());
         assertEquals(review.getDept(), reviewResponse.getDept());

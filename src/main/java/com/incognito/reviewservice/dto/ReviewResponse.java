@@ -23,7 +23,7 @@ public class ReviewResponse {
     private String title;
 
     @Schema(description = "Main content/body of the review.", example = "The company offers great benefits and a supportive team.")
-    private String content;
+    private String contentHtml;
 
     @Schema(description = "IP address of the user who submitted the review.", example = "192.168.1.100")
     private String ipAddress;
