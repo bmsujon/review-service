@@ -12,9 +12,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 				version = "v1",
 				description = "This API provides endpoints for managing reviews and comments.",
 				contact = @Contact(
-						name = "Incognito Dev Team",
-						email = "devteam@incognito.example.com",
-						url = "https://incognito.example.com"
+						name = "Md. Wahidul Azam",
+						email = "bmsujon@gmail.com",
+						url = "https://www.linkedin.com/in/md-wahidul-azam-6614a724/"
 				),
 				license = @License(
 						name = "Apache 2.0",

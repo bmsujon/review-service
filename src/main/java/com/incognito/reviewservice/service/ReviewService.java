@@ -78,12 +78,14 @@ public class ReviewService {
      */
     @Transactional
     public ReviewResponse incrementLikeCount(Long reviewId) {
+        int updatedRows = reviewRepository.incrementLikeCount(reviewId);
+        if (updatedRows == 0) {
+            throw new ResourceNotFoundException("Review not found with id: " + reviewId + " to increment like count.");
+        }
+        // Fetch the updated review to return the latest state
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId + " to increment like count."));
-
-        review.setLikeCount(review.getLikeCount() + 1);
-        Review updatedReview = reviewRepository.save(review);
-        return mapToReviewResponse(updatedReview);
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId)); // Should not happen if update was successful
+        return mapToReviewResponse(review);
     }
 
     /**
@@ -95,14 +97,14 @@ public class ReviewService {
      */
     @Transactional
     public ReviewResponse incrementDislikeCount(Long reviewId) {
+        int updatedRows = reviewRepository.incrementDislikeCount(reviewId);
+        if (updatedRows == 0) {
+            throw new ResourceNotFoundException("Review not found with id: " + reviewId + " to increment dislike count.");
+        }
+        // Fetch the updated review to return the latest state
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId + " to increment dislike count."));
-
-        review.setDislikeCount(review.getDislikeCount() + 1);
-        // Note: Similar to likes, if a user can only dislike once,
-        // more complex logic involving the current user would be needed.
-        Review updatedReview = reviewRepository.save(review);
-        return mapToReviewResponse(updatedReview);
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId)); // Should not happen if update was successful
+        return mapToReviewResponse(review);
     }
 
     private ReviewResponse mapToReviewResponse(Review review) {

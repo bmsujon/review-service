@@ -67,18 +67,15 @@ public class CommentService {
      */
     @Transactional
     public CommentResponse incrementLikeCount(Long reviewId, Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
-
-        // Validate that the comment belongs to the specified review
-        if (comment.getReview() == null || !comment.getReview().getId().equals(reviewId)) {
-            throw new BadRequestException("Comment with id " + commentId + " does not belong to review with id " + reviewId);
+        int updatedRows = commentRepository.incrementLikeCount(commentId, reviewId);
+        if (updatedRows == 0) {
+            // We need to check if the review or comment exists to give a more specific error.
+            // However, to keep it simple, we can assume the comment doesn't exist or doesn't belong to the review.
+            throw new ResourceNotFoundException("Comment not found with id: " + commentId + " for review id: " + reviewId + " to increment like count.");
         }
-
-        comment.setLikeCount(comment.getLikeCount() + 1);
-        // As with reviews, more complex logic would be needed if a user can only like once.
-        Comment updatedComment = commentRepository.save(comment);
-        return mapToCommentResponse(updatedComment);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId)); // Should not happen if update was successful
+        return mapToCommentResponse(comment);
     }
 
     /**
@@ -87,23 +84,17 @@ public class CommentService {
      * @param reviewId  The ID of the review the comment belongs to (for validation).
      * @param commentId The ID of the comment to dislike.
      * @return A {@link CommentResponse} representing the updated comment.
-     * @throws ResourceNotFoundException if the comment is not found.
-     * @throws BadRequestException if the comment does not belong to the specified review.
+     * @throws ResourceNotFoundException if the comment is not found or does not belong to the review.
      */
     @Transactional
     public CommentResponse incrementDislikeCount(Long reviewId, Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
-
-        // Validate that the comment belongs to the specified review
-        if (comment.getReview() == null || !comment.getReview().getId().equals(reviewId)) {
-            throw new BadRequestException("Comment with id " + commentId + " does not belong to review with id " + reviewId);
+        int updatedRows = commentRepository.incrementDislikeCount(commentId, reviewId);
+        if (updatedRows == 0) {
+            throw new ResourceNotFoundException("Comment not found with id: " + commentId + " for review id: " + reviewId + " to increment dislike count.");
         }
-
-        comment.setDislikeCount(comment.getDislikeCount() + 1);
-        // Similar to likes, more complex logic would be needed if a user can only dislike once.
-        Comment updatedComment = commentRepository.save(comment);
-        return mapToCommentResponse(updatedComment);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId)); // Should not happen if update was successful
+        return mapToCommentResponse(comment);
     }
 
     private CommentResponse mapToCommentResponse(Comment comment) {
