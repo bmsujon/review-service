@@ -38,9 +38,9 @@ public class Review extends BaseEntity {
     @Size(max = 255)
     private String title;
 
-    @Lob // For long text, maps to TEXT in PostgreSQL
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    @Lob // Good practice for potentially very long text, though String usually maps to TEXT in Postgres
+    @Column(name = "content_html", columnDefinition = "TEXT") // Explicitly use TEXT type
+    private String contentHtml;
 
     @Column(name = "ip_address", length = 45)
     private String ipAddress;

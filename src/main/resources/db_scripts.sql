@@ -10,7 +10,7 @@ CREATE TABLE reviews (
     id BIGSERIAL PRIMARY KEY,
     review_type VARCHAR(255) NOT NULL,
     title VARCHAR(255),
-    content TEXT,
+    content_html TEXT,
     ip_address VARCHAR(45),
     like_count INTEGER NOT NULL DEFAULT 0,
     dislike_count INTEGER NOT NULL DEFAULT 0,

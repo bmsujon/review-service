@@ -105,27 +105,40 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 
 ### Reviews Table
 
-- `id`: Primary key
-- `review_type`: Type of the review (e.g., POSITIVE, NEGATIVE, MIXED)
-- `title`: Title of the review
-- `content`: Main content of the review
-- `like_count`: Number of likes
-- `dislike_count`: Number of dislikes
-- `status`: Status of the review (e.g., PENDING, APPROVED, REJECTED)
-- `created_at`: Timestamp of creation
-- `updated_at`: Timestamp of last update
+- `id`: BIGSERIAL, Primary key
+- `review_type`: VARCHAR(255), Type of the review (e.g., COMPANY_REVIEW, PRODUCT_REVIEW)
+- `title`: VARCHAR(255), Title of the review
+- `content_html`: TEXT, Main content of the review in HTML format
+- `ip_address`: VARCHAR(45), IP address of the reviewer
+- `like_count`: INTEGER, Number of likes (default: 0)
+- `dislike_count`: INTEGER, Number of dislikes (default: 0)
+- `has_comment`: BOOLEAN, Indicates if the review has comments (default: FALSE)
+- `status`: VARCHAR(50), Status of the review (e.g., PENDING, APPROVED, REJECTED, default: 'PENDING')
+- `is_employee`: BOOLEAN, Indicates if the reviewer is an employee (default: FALSE)
+- `dept`: VARCHAR(100), Department of the employee (if applicable)
+- `role`: VARCHAR(100), Role of the employee (if applicable)
+- `company_name`: VARCHAR(255), Name of the company being reviewed
+- `website`: VARCHAR(2048), Website of the company
+- `work_start_date`: TIMESTAMP WITH TIME ZONE, Work start date for employee reviews
+- `work_end_date`: TIMESTAMP WITH TIME ZONE, Work end date for employee reviews
+- `created_at`: TIMESTAMP WITH TIME ZONE, Timestamp of creation (default: CURRENT_TIMESTAMP)
+- `updated_at`: TIMESTAMP WITH TIME ZONE, Timestamp of last update (default: CURRENT_TIMESTAMP)
+- `version`: BIGINT, Version number for optimistic locking (default: 0)
 
 ### Comments Table
 
-- `id`: Primary key
-- `review_id`: Foreign key referencing `reviews`
-- `parent_id`: Foreign key referencing another comment (for replies)
-- `content`: Content of the comment
-- `like_count`: Number of likes
-- `dislike_count`: Number of dislikes
-- `status`: Status of the comment (e.g., ACTIVE, HIDDEN, DELETED)
-- `created_at`: Timestamp of creation
-- `updated_at`: Timestamp of last update
+- `id`: BIGSERIAL, Primary key
+- `parent_id`: BIGINT, Foreign key referencing another comment (for replies)
+- `review_id`: BIGINT, Foreign key referencing `reviews` (ON DELETE CASCADE)
+- `user_name`: VARCHAR(100), Name of the user who commented
+- `content`: TEXT, Content of the comment
+- `ip_address`: VARCHAR(45), IP address of the commenter
+- `like_count`: INTEGER, Number of likes (default: 0)
+- `dislike_count`: INTEGER, Number of dislikes (default: 0)
+- `status`: VARCHAR(50), Status of the comment (e.g., ACTIVE, HIDDEN, DELETED, default: 'ACTIVE')
+- `created_at`: TIMESTAMP WITH TIME ZONE, Timestamp of creation (default: CURRENT_TIMESTAMP)
+- `updated_at`: TIMESTAMP WITH TIME ZONE, Timestamp of last update (default: CURRENT_TIMESTAMP)
+- `version`: BIGINT, Version number for optimistic locking (default: 0)
 
 ## Testing
 
