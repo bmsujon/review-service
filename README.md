@@ -66,11 +66,15 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
   - Query Parameters: `companyName`, `reviewType`, `page`, `size`
   - Response: `200 OK`
 
-- `POST /{reviewId}/like`
+- `GET /{reviewId}`
+  - Retrieve a specific review by its ID
+  - Response: `200 OK`
+
+- `PUT /{reviewId}/like`
   - Increment the like count of a review
   - Response: `200 OK`
 
-- `POST /{reviewId}/dislike`
+- `PUT /{reviewId}/dislike`
   - Increment the dislike count of a review
   - Response: `200 OK`
 
@@ -81,6 +85,7 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 - `POST /`
   - Create a comment or reply
   - Request Body: `CommentCreateRequest`
+  - Query Parameters: `parentId` (optional, for replies)
   - Response: `201 Created`
 
 - `GET /`
@@ -88,11 +93,11 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
   - Query Parameters: `page`, `size`
   - Response: `200 OK`
 
-- `POST /{commentId}/like`
+- `PUT /{commentId}/like`
   - Increment the like count of a comment
   - Response: `200 OK`
 
-- `POST /{commentId}/dislike`
+- `PUT /{commentId}/dislike`
   - Increment the dislike count of a comment
   - Response: `200 OK`
 

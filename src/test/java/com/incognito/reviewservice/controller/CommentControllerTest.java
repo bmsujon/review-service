@@ -5,8 +5,6 @@ import com.incognito.reviewservice.dto.CommentResponse;
 import com.incognito.reviewservice.service.CommentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks; // Import if using @InjectMocks for the controller
-import org.mockito.Mock; // Import Mock
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +99,7 @@ class CommentControllerTest {
 
         Mockito.when(commentService.incrementLikeCount(eq(reviewId), eq(commentId))).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/reviews/{reviewId}/comments/{commentId}/like", reviewId, commentId))
+        mockMvc.perform(put("/api/v1/reviews/{reviewId}/comments/{commentId}/like", reviewId, commentId)) // Changed from post to put
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(commentId))
                 .andExpect(jsonPath("$.likeCount").value(1));
@@ -120,7 +118,7 @@ class CommentControllerTest {
 
         Mockito.when(commentService.incrementDislikeCount(eq(reviewId), eq(commentId))).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/reviews/{reviewId}/comments/{commentId}/dislike", reviewId, commentId))
+        mockMvc.perform(put("/api/v1/reviews/{reviewId}/comments/{commentId}/dislike", reviewId, commentId)) // Changed from post to put
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(commentId))
                 .andExpect(jsonPath("$.dislikeCount").value(1));

@@ -113,7 +113,7 @@ public class ReviewController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = Object.class)))
     })
-    @PostMapping("/{reviewId}/like")
+    @PutMapping("/{reviewId}/like")
     public ResponseEntity<ReviewResponse> likeReview(
             @Parameter(description = "ID of the review to be liked", required = true, example = "1")
             @PathVariable Long reviewId) {
@@ -133,7 +133,7 @@ public class ReviewController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = Object.class)))
     })
-    @PostMapping("/{reviewId}/dislike")
+    @PutMapping("/{reviewId}/dislike")
     public ResponseEntity<ReviewResponse> dislikeReview(
             @Parameter(description = "ID of the review to be disliked", required = true, example = "1")
             @PathVariable Long reviewId) {

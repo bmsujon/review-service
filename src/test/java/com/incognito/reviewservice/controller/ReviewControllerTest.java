@@ -6,7 +6,6 @@ import com.incognito.reviewservice.model.ReviewType;
 import com.incognito.reviewservice.service.ReviewService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +24,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put; // Added put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -119,7 +119,7 @@ class ReviewControllerTest {
 
         Mockito.when(reviewService.incrementLikeCount(eq(reviewId))).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/reviews/{reviewId}/like", reviewId))
+        mockMvc.perform(put("/api/v1/reviews/{reviewId}/like", reviewId)) // Changed from post to put
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(reviewId))
                 .andExpect(jsonPath("$.likeCount").value(1));
@@ -138,7 +138,7 @@ class ReviewControllerTest {
 
         Mockito.when(reviewService.incrementDislikeCount(eq(reviewId))).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/reviews/{reviewId}/dislike", reviewId))
+        mockMvc.perform(put("/api/v1/reviews/{reviewId}/dislike", reviewId)) // Changed from post to put
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(reviewId))
                 .andExpect(jsonPath("$.dislikeCount").value(1));

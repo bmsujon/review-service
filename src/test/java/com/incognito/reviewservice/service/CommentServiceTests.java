@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -133,5 +132,29 @@ class CommentServiceTests {
         assertTrue(actualMessage.contains(expectedMessage));
         verify(commentRepository, times(1)).incrementDislikeCount(comment.getId(), review.getId());
         verify(commentRepository, never()).findById(anyLong());
+    }
+
+    // TODO: Add test for createComment with parentId null
+    @Test
+    void createComment_whenParentIdIsNull_shouldCreateTopLevelComment() {
+        // Arrange
+        // Act
+        // Assert
+    }
+
+    // TODO: Add test for createComment with parentId not null
+    @Test
+    void createComment_whenParentIdIsNotNull_shouldCreateReplyComment() {
+        // Arrange
+        // Act
+        // Assert
+    }
+
+    // TODO: Add test for getCommentsByReviewId
+    @Test
+    void getCommentsByReviewId_shouldReturnPageOfCommentResponses() {
+        // Arrange
+        // Act
+        // Assert
     }
 }
