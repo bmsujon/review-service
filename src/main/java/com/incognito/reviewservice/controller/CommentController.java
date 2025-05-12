@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/v1/reviews/{reviewId}/comments")
 @Tag(name = "Comment API", description = "APIs for managing comments on reviews")
+@Slf4j
 public class CommentController {
 
     private final CommentService commentService;
@@ -63,6 +65,7 @@ public class CommentController {
                 .path("/{commentId}") // Appends the comment ID
                 .buildAndExpand(commentResponse.getId()) // Populates {commentId}
                 .toUri();
+        log.info("commentResponse: {}", commentResponse);
         return ResponseEntity.created(location).body(commentResponse);
     }
 

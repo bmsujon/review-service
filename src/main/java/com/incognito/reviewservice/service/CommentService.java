@@ -28,23 +28,24 @@ public class CommentService {
 
         Comment comment = Comment.builder()
                 .content(request.getContent())
-                // Default values for likeCount, dislikeCount, status will be applied by @Builder.Default
+                .review(review) // Always associate the comment with the review
                 .build();
 
         if (parentId != null) {
             Comment parentComment = commentRepository.findById(parentId)
                     .orElseThrow(() -> new ResourceNotFoundException("Parent comment not found with id: " + parentId));
 
+            // Validate that the parent comment belongs to the same review
             if (parentComment.getReview() == null || !parentComment.getReview().getId().equals(reviewId)) {
                 throw new BadRequestException("Parent comment with id " + parentId + " does not belong to review with id " + reviewId);
             }
-            parentComment.addReply(comment);
-            commentRepository.save(parentComment); // Cascades to save the new reply 'comment'
-        } else {
-            review.addComment(comment);
-            reviewRepository.save(review); // Cascades to save the new 'comment'
+            comment.setParent(parentComment);
         }
-        return mapToCommentResponse(comment);
+
+        // Save the comment entity itself. The returned instance is managed and has the ID.
+        Comment savedComment = commentRepository.save(comment);
+
+        return mapToCommentResponse(savedComment);
     }
 
     @Transactional(readOnly = true)
@@ -69,8 +70,6 @@ public class CommentService {
     public CommentResponse incrementLikeCount(Long reviewId, Long commentId) {
         int updatedRows = commentRepository.incrementLikeCount(commentId, reviewId);
         if (updatedRows == 0) {
-            // We need to check if the review or comment exists to give a more specific error.
-            // However, to keep it simple, we can assume the comment doesn't exist or doesn't belong to the review.
             throw new ResourceNotFoundException("Comment not found with id: " + commentId + " for review id: " + reviewId + " to increment like count.");
         }
         Comment comment = commentRepository.findById(commentId)
@@ -106,7 +105,6 @@ public class CommentService {
                 .content(comment.getContent())
                 .likeCount(comment.getLikeCount())
                 .dislikeCount(comment.getDislikeCount())
-                // .status(comment.getStatus()) // If you have status
                 .reviewId(comment.getReview() != null ? comment.getReview().getId() : null)
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
                 .createdAt(comment.getCreatedAt())
