@@ -40,22 +40,26 @@ class ReviewControllerTest {
 
     @Test
     void testCreateReview() throws Exception {
-        ReviewResponse response = ReviewResponse.builder()
-                .id(1L)
-                .title("Title")
-                .contentHtml("Content Test Content")
-                .reviewType(ReviewType.POSITIVE)
-                .companyName("Incognito Corp")
-                .ipAddress("127.0.0.1")
-                .isEmployee(true)
-                .dept("Engineering")
-                .role("Software Engineer")
-                .website("http://incognito.com")
-                .likeCount(0)
-                .dislikeCount(0)
-                .hasComment(false)
-                .status(com.incognito.reviewservice.model.ReviewStatus.PENDING)
-                .build();
+        ReviewResponse response = new ReviewResponse(
+                1L,
+                ReviewType.POSITIVE,
+                "Title",
+                "Content Test Content",
+                "127.0.0.1",
+                0,
+                0,
+                false,
+                com.incognito.reviewservice.model.ReviewStatus.PENDING,
+                true,
+                "Engineering",
+                "Software Engineer",
+                "Incognito Corp",
+                "http://incognito.com",
+                null, // workStartDate
+                null, // workEndDate
+                null, // createdAt
+                null // updatedAt
+        );
 
         Mockito.when(reviewService.createReview(any(ReviewCreateRequest.class))).thenReturn(response);
 
@@ -65,7 +69,7 @@ class ReviewControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").value("Title"))
-                .andExpect(jsonPath("$.content").value("Content Test Content"))
+                .andExpect(jsonPath("$.contentHtml").value("Content Test Content"))
                 .andExpect(jsonPath("$.reviewType").value("POSITIVE"))
                 .andExpect(jsonPath("$.companyName").value("Incognito Corp"))
                 .andExpect(jsonPath("$.ipAddress").value("127.0.0.1"))
@@ -81,16 +85,26 @@ class ReviewControllerTest {
 
     @Test
     void testGetReviews() throws Exception {
-        ReviewResponse reviewResponse = ReviewResponse.builder()
-                .id(1L)
-                .title("Test Title")
-                .contentHtml("Test Content Sufficiently Long")
-                .reviewType(ReviewType.NEGATIVE)
-                .companyName("Incognito Corp")
-                .status(com.incognito.reviewservice.model.ReviewStatus.APPROVED)
-                .likeCount(10)
-                .dislikeCount(1)
-                .build();
+        ReviewResponse reviewResponse = new ReviewResponse(
+                1L,
+                ReviewType.NEGATIVE,
+                "Test Title",
+                "Test Content Sufficiently Long",
+                null, // ipAddress
+                10,
+                1,
+                null, // hasComment
+                com.incognito.reviewservice.model.ReviewStatus.APPROVED,
+                null, // isEmployee
+                null, // dept
+                null, // role
+                "Incognito Corp",
+                null, // website
+                null, // workStartDate
+                null, // workEndDate
+                null, // createdAt
+                null // updatedAt
+        );
 
         Mockito.when(reviewService.getReviews(isNull(String.class), isNull(ReviewType.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(Collections.singletonList(reviewResponse), PageRequest.of(0, 10), 1));
@@ -101,7 +115,7 @@ class ReviewControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].title").value("Test Title"))
-                .andExpect(jsonPath("$.content[0].content").value("Test Content Sufficiently Long"))
+                .andExpect(jsonPath("$.content[0].contentHtml").value("Test Content Sufficiently Long"))
                 .andExpect(jsonPath("$.content[0].reviewType").value("NEGATIVE"))
                 .andExpect(jsonPath("$.content[0].companyName").value("Incognito Corp"))
                 .andExpect(jsonPath("$.content[0].status").value("APPROVED"))
@@ -112,22 +126,26 @@ class ReviewControllerTest {
     @Test
     void testGetReviewById() throws Exception {
         Long reviewId = 1L;
-        ReviewResponse response = ReviewResponse.builder()
-                .id(reviewId)
-                .title("Test Title")
-                .contentHtml("Test Content")
-                .reviewType(ReviewType.POSITIVE)
-                .companyName("Incognito Corp")
-                .ipAddress("127.0.0.1")
-                .isEmployee(false)
-                .dept("Sales")
-                .role("Manager")
-                .website("http://example.com")
-                .likeCount(5)
-                .dislikeCount(0)
-                .hasComment(true)
-                .status(com.incognito.reviewservice.model.ReviewStatus.REJECTED)
-                .build();
+        ReviewResponse response = new ReviewResponse(
+                reviewId,
+                ReviewType.POSITIVE,
+                "Test Title",
+                "Test Content",
+                "127.0.0.1",
+                5,
+                0,
+                true,
+                com.incognito.reviewservice.model.ReviewStatus.REJECTED,
+                false,
+                "Sales",
+                "Manager",
+                "Incognito Corp",
+                "http://example.com",
+                null, // workStartDate
+                null, // workEndDate
+                null, // createdAt
+                null // updatedAt
+        );
 
         Mockito.when(reviewService.getReviewById(eq(reviewId))).thenReturn(response);
 
@@ -135,7 +153,7 @@ class ReviewControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(reviewId))
                 .andExpect(jsonPath("$.title").value("Test Title"))
-                .andExpect(jsonPath("$.content").value("Test Content"))
+                .andExpect(jsonPath("$.contentHtml").value("Test Content"))
                 .andExpect(jsonPath("$.reviewType").value("POSITIVE"))
                 .andExpect(jsonPath("$.companyName").value("Incognito Corp"))
                 .andExpect(jsonPath("$.ipAddress").value("127.0.0.1"))
@@ -152,13 +170,26 @@ class ReviewControllerTest {
     @Test
     void testLikeReview() throws Exception {
         Long reviewId = 1L;
-        ReviewResponse response = ReviewResponse.builder()
-                .id(reviewId)
-                .title("Test Title")
-                .contentHtml("Test Content")
-                .reviewType(ReviewType.POSITIVE)
-                .likeCount(1)
-                .build();
+        ReviewResponse response = new ReviewResponse(
+                reviewId,
+                ReviewType.POSITIVE,
+                "Test Title",
+                "Test Content",
+                null, // ipAddress
+                1, // likeCount
+                0, // dislikeCount
+                null, // hasComment
+                null, // status
+                null, // isEmployee
+                null, // dept
+                null, // role
+                null, // companyName
+                null, // website
+                null, // workStartDate
+                null, // workEndDate
+                null, // createdAt
+                null // updatedAt
+        );
 
         Mockito.when(reviewService.incrementLikeCount(eq(reviewId))).thenReturn(response);
 
@@ -171,13 +202,26 @@ class ReviewControllerTest {
     @Test
     void testDislikeReview() throws Exception {
         Long reviewId = 1L;
-        ReviewResponse response = ReviewResponse.builder()
-                .id(reviewId)
-                .title("Test Title")
-                .contentHtml("Test Content")
-                .reviewType(ReviewType.POSITIVE)
-                .dislikeCount(1)
-                .build();
+        ReviewResponse response = new ReviewResponse(
+                reviewId,
+                ReviewType.POSITIVE,
+                "Test Title",
+                "Test Content",
+                null, // ipAddress
+                0, // likeCount
+                1, // dislikeCount
+                null, // hasComment
+                null, // status
+                null, // isEmployee
+                null, // dept
+                null, // role
+                null, // companyName
+                null, // website
+                null, // workStartDate
+                null, // workEndDate
+                null, // createdAt
+                null // updatedAt
+        );
 
         Mockito.when(reviewService.incrementDislikeCount(eq(reviewId))).thenReturn(response);
 

@@ -9,7 +9,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-// import org.springframework.boot.test.mock.mockito.MockBean; // Remove this
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,16 +40,17 @@ class CommentControllerTest {
 
     @Test
     void testCreateComment() throws Exception {
-        CommentCreateRequest request = CommentCreateRequest.builder()
-                .content("Test Comment")
-                .build();
-        CommentResponse response = CommentResponse.builder()
-                .id(1L)
-                .content("Test Comment")
-                .likeCount(0)
-                .dislikeCount(0)
-                .reviewId(1L)
-                .build();
+        CommentResponse response = new CommentResponse(
+                1L,
+                "Test Comment",
+                0,
+                0,
+                1L,
+                null, // parentId
+                null, // createdAt
+                null, // updatedAt
+                null  // status
+        );
 
         Mockito.when(commentService.createComment(eq(1L), isNull(), any(CommentCreateRequest.class))).thenReturn(response);
 
@@ -66,13 +66,17 @@ class CommentControllerTest {
 
     @Test
     void testGetCommentsByReviewId() throws Exception {
-        CommentResponse commentResponse = CommentResponse.builder()
-                .id(1L)
-                .content("Test Comment")
-                .reviewId(1L)
-                .likeCount(5)
-                .dislikeCount(0)
-                .build();
+        CommentResponse commentResponse = new CommentResponse(
+                1L,
+                "Test Comment",
+                5,
+                0,
+                1L,
+                null, // parentId
+                null, // createdAt
+                null, // updatedAt
+                null  // status
+        );
 
         Mockito.when(commentService.getCommentsByReviewId(eq(1L), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(Collections.singletonList(commentResponse), PageRequest.of(0, 10), 1));
@@ -90,12 +94,17 @@ class CommentControllerTest {
     void testLikeComment() throws Exception {
         Long reviewId = 1L;
         Long commentId = 1L;
-        CommentResponse response = CommentResponse.builder()
-                .id(commentId)
-                .content("Test Comment")
-                .reviewId(reviewId)
-                .likeCount(1)
-                .build();
+        CommentResponse response = new CommentResponse(
+                commentId,
+                "Test Comment",
+                1, // likeCount
+                0, // dislikeCount
+                reviewId,
+                null, // parentId
+                null, // createdAt
+                null, // updatedAt
+                null  // status
+        );
 
         Mockito.when(commentService.incrementLikeCount(eq(reviewId), eq(commentId))).thenReturn(response);
 
@@ -109,12 +118,17 @@ class CommentControllerTest {
     void testDislikeComment() throws Exception {
         Long reviewId = 1L;
         Long commentId = 1L;
-        CommentResponse response = CommentResponse.builder()
-                .id(commentId)
-                .content("Test Comment")
-                .reviewId(reviewId)
-                .dislikeCount(1)
-                .build();
+        CommentResponse response = new CommentResponse(
+                commentId,
+                "Test Comment",
+                0, // likeCount
+                1, // dislikeCount
+                reviewId,
+                null, // parentId
+                null, // createdAt
+                null, // updatedAt
+                null  // status
+        );
 
         Mockito.when(commentService.incrementDislikeCount(eq(reviewId), eq(commentId))).thenReturn(response);
 

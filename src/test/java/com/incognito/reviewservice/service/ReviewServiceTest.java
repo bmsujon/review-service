@@ -64,19 +64,19 @@ class ReviewServiceTest {
                 .status(ReviewStatus.APPROVED)
                 .build();
 
-        reviewCreateRequest = ReviewCreateRequest.builder()
-                .reviewType(ReviewType.NEGATIVE)
-                .title("Great Company")
-                .content("Loved working here")
-                .ipAddress("127.0.0.1")
-                .isEmployee(true)
-                .dept("Engineering")
-                .role("Software Engineer")
-                .companyName("Incognito Corp")
-                .website("http://incognito.com")
-                .workStartDate(fixedWorkStartDate)
-                .workEndDate(fixedWorkEndDate)
-                .build();
+        reviewCreateRequest = new ReviewCreateRequest(
+                ReviewType.NEGATIVE,
+                "Great Company",
+                "Loved working here",
+                "127.0.0.1",
+                "Engineering",
+                "Software Engineer",
+                "Incognito Corp",
+                "http://incognito.com",
+                true,
+                fixedWorkStartDate,
+                fixedWorkEndDate
+        );
     }
 
     @Test
@@ -86,21 +86,21 @@ class ReviewServiceTest {
         ReviewResponse reviewResponse = reviewService.createReview(reviewCreateRequest);
 
         assertNotNull(reviewResponse);
-        assertEquals(review.getReviewType(), reviewResponse.getReviewType());
-        assertEquals(review.getTitle(), reviewResponse.getTitle());
-        assertEquals(review.getContentHtml(), reviewResponse.getContentHtml()); // Assuming ReviewResponse maps contentHtml to content
-        assertEquals(review.getIpAddress(), reviewResponse.getIpAddress());
-        assertEquals(review.getIsEmployee(), reviewResponse.getIsEmployee());
-        assertEquals(review.getDept(), reviewResponse.getDept());
-        assertEquals(review.getRole(), reviewResponse.getRole());
-        assertEquals(review.getCompanyName(), reviewResponse.getCompanyName());
-        assertEquals(review.getWebsite(), reviewResponse.getWebsite());
-        assertEquals(review.getWorkStartDate(), reviewResponse.getWorkStartDate());
-        assertEquals(review.getWorkEndDate(), reviewResponse.getWorkEndDate());
-        assertEquals(review.getLikeCount(), reviewResponse.getLikeCount());
-        assertEquals(review.getDislikeCount(), reviewResponse.getDislikeCount());
-        assertEquals(review.getHasComment(), reviewResponse.getHasComment());
-        assertEquals(review.getStatus(), reviewResponse.getStatus());
+        assertEquals(review.getReviewType(), reviewResponse.reviewType());
+        assertEquals(review.getTitle(), reviewResponse.title());
+        assertEquals(review.getContentHtml(), reviewResponse.contentHtml()); // Assuming ReviewResponse maps contentHtml to content
+        assertEquals(review.getIpAddress(), reviewResponse.ipAddress());
+        assertEquals(review.getIsEmployee(), reviewResponse.isEmployee());
+        assertEquals(review.getDept(), reviewResponse.dept());
+        assertEquals(review.getRole(), reviewResponse.role());
+        assertEquals(review.getCompanyName(), reviewResponse.companyName());
+        assertEquals(review.getWebsite(), reviewResponse.website());
+        assertEquals(review.getWorkStartDate(), reviewResponse.workStartDate());
+        assertEquals(review.getWorkEndDate(), reviewResponse.workEndDate());
+        assertEquals(review.getLikeCount(), reviewResponse.likeCount());
+        assertEquals(review.getDislikeCount(), reviewResponse.dislikeCount());
+        assertEquals(review.getHasComment(), reviewResponse.hasComment());
+        assertEquals(review.getStatus(), reviewResponse.status());
         verify(reviewRepository, times(1)).save(any(Review.class));
     }
 
@@ -111,22 +111,22 @@ class ReviewServiceTest {
         ReviewResponse reviewResponse = reviewService.getReviewById(1L);
 
         assertNotNull(reviewResponse);
-        assertEquals(review.getId(), reviewResponse.getId());
-        assertEquals(review.getReviewType(), reviewResponse.getReviewType());
-        assertEquals(review.getTitle(), reviewResponse.getTitle());
-        assertEquals(review.getContentHtml(), reviewResponse.getContentHtml());
-        assertEquals(review.getIpAddress(), reviewResponse.getIpAddress());
-        assertEquals(review.getIsEmployee(), reviewResponse.getIsEmployee());
-        assertEquals(review.getDept(), reviewResponse.getDept());
-        assertEquals(review.getRole(), reviewResponse.getRole());
-        assertEquals(review.getCompanyName(), reviewResponse.getCompanyName());
-        assertEquals(review.getWebsite(), reviewResponse.getWebsite());
-        assertEquals(review.getWorkStartDate(), reviewResponse.getWorkStartDate());
-        assertEquals(review.getWorkEndDate(), reviewResponse.getWorkEndDate());
-        assertEquals(review.getLikeCount(), reviewResponse.getLikeCount());
-        assertEquals(review.getDislikeCount(), reviewResponse.getDislikeCount());
-        assertEquals(review.getHasComment(), reviewResponse.getHasComment());
-        assertEquals(review.getStatus(), reviewResponse.getStatus());
+        assertEquals(review.getId(), reviewResponse.id());
+        assertEquals(review.getReviewType(), reviewResponse.reviewType());
+        assertEquals(review.getTitle(), reviewResponse.title());
+        assertEquals(review.getContentHtml(), reviewResponse.contentHtml());
+        assertEquals(review.getIpAddress(), reviewResponse.ipAddress());
+        assertEquals(review.getIsEmployee(), reviewResponse.isEmployee());
+        assertEquals(review.getDept(), reviewResponse.dept());
+        assertEquals(review.getRole(), reviewResponse.role());
+        assertEquals(review.getCompanyName(), reviewResponse.companyName());
+        assertEquals(review.getWebsite(), reviewResponse.website());
+        assertEquals(review.getWorkStartDate(), reviewResponse.workStartDate());
+        assertEquals(review.getWorkEndDate(), reviewResponse.workEndDate());
+        assertEquals(review.getLikeCount(), reviewResponse.likeCount());
+        assertEquals(review.getDislikeCount(), reviewResponse.dislikeCount());
+        assertEquals(review.getHasComment(), reviewResponse.hasComment());
+        assertEquals(review.getStatus(), reviewResponse.status());
         verify(reviewRepository, times(1)).findById(1L);
     }
 
@@ -143,10 +143,10 @@ class ReviewServiceTest {
         assertEquals(1, reviewResponsePage.getTotalElements());
         assertFalse(reviewResponsePage.getContent().isEmpty());
         ReviewResponse firstReview = reviewResponsePage.getContent().get(0);
-        assertEquals(review.getCompanyName(), firstReview.getCompanyName());
-        assertEquals(review.getReviewType(), firstReview.getReviewType());
-        assertEquals(review.getTitle(), firstReview.getTitle());
-        assertEquals(review.getStatus(), firstReview.getStatus());
+        assertEquals(review.getCompanyName(), firstReview.companyName());
+        assertEquals(review.getReviewType(), firstReview.reviewType());
+        assertEquals(review.getTitle(), firstReview.title());
+        assertEquals(review.getStatus(), firstReview.status());
         verify(reviewRepository, times(1)).findAll(any(Specification.class), any(Pageable.class)); // Suppressed warning applies here
     }
     
@@ -164,8 +164,8 @@ class ReviewServiceTest {
         assertEquals(1, reviewResponsePage.getTotalElements());
         assertFalse(reviewResponsePage.getContent().isEmpty());
         ReviewResponse firstReview = reviewResponsePage.getContent().get(0);
-        assertEquals(review.getCompanyName(), firstReview.getCompanyName());
-        assertEquals(review.getTitle(), firstReview.getTitle());
+        assertEquals(review.getCompanyName(), firstReview.companyName());
+        assertEquals(review.getTitle(), firstReview.title());
         // Add more assertions as needed for the "no filter" case
         verify(reviewRepository, times(1)).findAll(any(Specification.class), eq(pageable)); // Suppressed warning applies here
     }
@@ -201,8 +201,8 @@ class ReviewServiceTest {
 
         // Assert
         assertNotNull(reviewResponse);
-        assertEquals(reviewAfterLike.getId(), reviewResponse.getId());
-        assertEquals(reviewAfterLike.getLikeCount(), reviewResponse.getLikeCount()); // Assert updated like count
+        assertEquals(reviewAfterLike.getId(), reviewResponse.id());
+        assertEquals(reviewAfterLike.getLikeCount(), reviewResponse.likeCount()); // Assert updated like count
         verify(reviewRepository, times(1)).incrementLikeCount(1L);
         verify(reviewRepository, times(1)).findById(1L);
     }
@@ -257,8 +257,8 @@ class ReviewServiceTest {
 
         // Assert
         assertNotNull(reviewResponse);
-        assertEquals(reviewAfterDislike.getId(), reviewResponse.getId());
-        assertEquals(reviewAfterDislike.getDislikeCount(), reviewResponse.getDislikeCount()); // Assert updated dislike count
+        assertEquals(reviewAfterDislike.getId(), reviewResponse.id());
+        assertEquals(reviewAfterDislike.getDislikeCount(), reviewResponse.dislikeCount()); // Assert updated dislike count
         verify(reviewRepository, times(1)).incrementDislikeCount(1L);
         verify(reviewRepository, times(1)).findById(1L);
     }

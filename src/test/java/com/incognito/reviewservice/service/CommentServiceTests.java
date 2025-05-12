@@ -54,13 +54,8 @@ class CommentServiceTests {
         CommentResponse response = commentService.incrementLikeCount(review.getId(), comment.getId());
 
         assertNotNull(response);
-        assertEquals(comment.getId(), response.getId());
-        // Assuming the like count is incremented in the actual comment object by the service or repository method
-        // For this test, we'd ideally verify the likeCount in the response if mapToCommentResponse reflects it
-        // If incrementLikeCount directly modifies and returns the updated comment, this test is fine.
-        // If it relies on findById fetching an updated comment, ensure the mock for findById returns the *expected* state.
+        assertEquals(comment.getId(), response.id());
 
-        // Let's assume the comment object fetched by findById will have the updated count
         Comment updatedComment = Comment.builder()
             .id(comment.getId())
             .content(comment.getContent())
@@ -71,9 +66,8 @@ class CommentServiceTests {
         when(commentRepository.findById(comment.getId())).thenReturn(Optional.of(updatedComment));
         response = commentService.incrementLikeCount(review.getId(), comment.getId());
 
-
-        assertEquals(1, response.getLikeCount());
-        verify(commentRepository, times(2)).incrementLikeCount(comment.getId(), review.getId()); // Called twice due to re-setup for assertion
+        assertEquals(1, response.likeCount());
+        verify(commentRepository, times(2)).incrementLikeCount(comment.getId(), review.getId());
         verify(commentRepository, times(2)).findById(comment.getId());
     }
 
@@ -93,11 +87,10 @@ class CommentServiceTests {
         verify(commentRepository, never()).findById(anyLong());
     }
 
-
     @Test
     void incrementDislikeCount_Success() {
         when(commentRepository.incrementDislikeCount(comment.getId(), review.getId())).thenReturn(1);
-        // Simulate that the comment object will be refetched with an updated dislike count
+
         Comment dislikedComment = Comment.builder()
                 .id(comment.getId())
                 .content("Test comment")
@@ -110,9 +103,9 @@ class CommentServiceTests {
         CommentResponse response = commentService.incrementDislikeCount(review.getId(), comment.getId());
 
         assertNotNull(response);
-        assertEquals(comment.getId(), response.getId());
-        assertEquals(1, response.getDislikeCount()); // Verify dislike count
-        assertEquals(0, response.getLikeCount());   // Like count should remain unchanged
+        assertEquals(comment.getId(), response.id());
+        assertEquals(1, response.dislikeCount());
+        assertEquals(0, response.likeCount());
 
         verify(commentRepository, times(1)).incrementDislikeCount(comment.getId(), review.getId());
         verify(commentRepository, times(1)).findById(comment.getId());
