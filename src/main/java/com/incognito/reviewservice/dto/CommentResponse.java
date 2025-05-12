@@ -1,5 +1,6 @@
 package com.incognito.reviewservice.dto;
 
+import com.incognito.reviewservice.model.CommentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -38,5 +39,7 @@ public class CommentResponse {
     @Schema(description = "Timestamp of when the comment was last updated.", example = "2023-10-28T11:00:00Z")
     private Instant updatedAt;
 
+    @Schema(description = "Status of the comment.", example = "ACTIVE")
+    private CommentStatus status;
     // Add other fields like commenterInfo if needed
 }

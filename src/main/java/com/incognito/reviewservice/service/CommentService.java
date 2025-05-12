@@ -108,6 +108,7 @@ public class CommentService {
                 .reviewId(comment.getReview() != null ? comment.getReview().getId() : null)
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
                 .createdAt(comment.getCreatedAt())
+                .status(comment.getStatus())
                 .updatedAt(comment.getUpdatedAt())
                 .build();
     }
