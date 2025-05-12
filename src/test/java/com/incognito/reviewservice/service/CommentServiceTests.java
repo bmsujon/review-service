@@ -1,6 +1,7 @@
 package com.incognito.reviewservice.service;
 
 import com.incognito.reviewservice.dto.CommentResponse;
+import com.incognito.reviewservice.dto.CommentCreateRequest;
 import com.incognito.reviewservice.entity.Comment;
 import com.incognito.reviewservice.entity.Review;
 import com.incognito.reviewservice.exception.ResourceNotFoundException;
@@ -12,6 +13,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.mockito.ArgumentCaptor;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -127,27 +136,112 @@ class CommentServiceTests {
         verify(commentRepository, never()).findById(anyLong());
     }
 
-    // TODO: Add test for createComment with parentId null
     @Test
     void createComment_whenParentIdIsNull_shouldCreateTopLevelComment() {
         // Arrange
+        CommentCreateRequest request = new CommentCreateRequest("Test content"); // request.content() is "Test content"
+
+        // Prepare the Comment object that we expect commentRepository.save() to return.
+        // This object should reflect the data from the request.
+        Comment commentToBeReturnedBySave = Comment.builder()
+                .id(1L) // Using a consistent ID, e.g., from the 'comment' in setUp or a new one.
+                .content(request.content()) // Content from the request
+                .review(review) // review from setUp
+                .likeCount(0)
+                .dislikeCount(0)
+                .build();
+
+        when(reviewRepository.findById(review.getId())).thenReturn(Optional.of(review));
+        // Mock commentRepository.save to return the comment with the correct content
+        when(commentRepository.save(any(Comment.class))).thenReturn(commentToBeReturnedBySave);
+
         // Act
+        CommentResponse response = commentService.createComment(review.getId(), null, request);
+
         // Assert
+        assertNotNull(response);
+        assertEquals(commentToBeReturnedBySave.getId(), response.id());
+        assertEquals(request.content(), response.content()); // Should now pass
+        assertNull(response.parentId());
+
+        verify(reviewRepository, times(1)).findById(review.getId());
+
+        // Capture the argument passed to commentRepository.save and verify its properties
+        ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
+        verify(commentRepository, times(1)).save(commentCaptor.capture());
+        Comment commentPassedToSave = commentCaptor.getValue();
+        assertEquals(request.content(), commentPassedToSave.getContent()); // Verify content passed to save
+        assertEquals(review, commentPassedToSave.getReview());        // Verify review association
+        assertNull(commentPassedToSave.getParent());                 // Verify parent is null
+
+        verify(commentRepository, never()).findById(anyLong()); // No parent comment lookup, which is correct
     }
 
-    // TODO: Add test for createComment with parentId not null
     @Test
     void createComment_whenParentIdIsNotNull_shouldCreateReplyComment() {
         // Arrange
+        CommentCreateRequest request = new CommentCreateRequest("Reply content");
+        Comment parentComment = Comment.builder().id(2L).content("Parent comment").review(review).build();
+        Comment replyComment = Comment.builder().id(3L).content("Reply content").review(review).parent(parentComment).build();
+
+        when(reviewRepository.findById(review.getId())).thenReturn(Optional.of(review));
+        when(commentRepository.findById(parentComment.getId())).thenReturn(Optional.of(parentComment));
+        when(commentRepository.save(any(Comment.class))).thenReturn(replyComment);
+
         // Act
+        CommentResponse response = commentService.createComment(review.getId(), parentComment.getId(), request);
+
         // Assert
+        assertNotNull(response);
+        assertEquals(replyComment.getId(), response.id());
+        assertEquals(request.content(), response.content());
+        assertEquals(parentComment.getId(), response.parentId());
+        verify(reviewRepository, times(1)).findById(review.getId());
+        verify(commentRepository, times(1)).findById(parentComment.getId());
+        verify(commentRepository, times(1)).save(any(Comment.class));
     }
 
-    // TODO: Add test for getCommentsByReviewId
     @Test
     void getCommentsByReviewId_shouldReturnPageOfCommentResponses() {
         // Arrange
+        Long reviewId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Comment> comments = Arrays.asList(
+                Comment.builder().id(1L).content("Comment 1").review(review).build(),
+                Comment.builder().id(2L).content("Comment 2").review(review).build()
+        );
+        Page<Comment> commentPage = new PageImpl<>(comments, pageable, comments.size());
+
+        when(reviewRepository.existsById(reviewId)).thenReturn(true);
+        when(commentRepository.findByReviewId(reviewId, pageable)).thenReturn(commentPage);
+
         // Act
+        Page<CommentResponse> resultPage = commentService.getCommentsByReviewId(reviewId, pageable);
+
         // Assert
+        assertNotNull(resultPage);
+        assertEquals(2, resultPage.getTotalElements());
+        assertEquals(2, resultPage.getContent().size());
+        assertEquals("Comment 1", resultPage.getContent().get(0).content());
+        assertEquals("Comment 2", resultPage.getContent().get(1).content());
+
+        verify(reviewRepository, times(1)).existsById(reviewId);
+        verify(commentRepository, times(1)).findByReviewId(reviewId, pageable);
+    }
+
+    @Test
+    void getCommentsByReviewId_whenReviewNotFound_shouldThrowResourceNotFoundException() {
+        // Arrange
+        Long reviewId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+        when(reviewRepository.existsById(reviewId)).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> {
+            commentService.getCommentsByReviewId(reviewId, pageable);
+        });
+
+        verify(reviewRepository, times(1)).existsById(reviewId);
+        verify(commentRepository, never()).findByReviewId(anyLong(), any(Pageable.class));
     }
 }
