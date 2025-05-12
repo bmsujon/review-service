@@ -53,7 +53,7 @@ public class ReviewController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(reviewResponse.getId())
+                .buildAndExpand(reviewResponse.id())
                 .toUri();
         return ResponseEntity.created(location).body(reviewResponse);
     }

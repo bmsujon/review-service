@@ -5,6 +5,7 @@ import com.incognito.reviewservice.dto.ReviewResponse;
 import com.incognito.reviewservice.entity.Review;
 import com.incognito.reviewservice.exception.ResourceNotFoundException;
 import com.incognito.reviewservice.model.ReviewType;
+import com.incognito.reviewservice.model.ReviewStatus;
 import com.incognito.reviewservice.repository.ReviewRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -25,23 +26,20 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse createReview(ReviewCreateRequest request) {
-        Review.ReviewBuilder reviewBuilder = Review.builder()
-                .reviewType(request.getReviewType())
-                .title(request.getTitle())
-                .contentHtml(request.getContent())
-                .ipAddress(request.getIpAddress())
-                .dept(request.getDept())
-                .role(request.getRole())
-                .companyName(request.getCompanyName())
-                .website(request.getWebsite())
-                .workStartDate(request.getWorkStartDate())
-                .workEndDate(request.getWorkEndDate());
-
-        if (request.getIsEmployee() != null) {
-            reviewBuilder.isEmployee(request.getIsEmployee());
-        }
-
-        Review review = reviewBuilder.build();
+        Review review = Review.builder()
+                .reviewType(request.reviewType())
+                .title(request.title())
+                .contentHtml(request.content())
+                .ipAddress(request.ipAddress())
+                .isEmployee(request.isEmployee())
+                .dept(request.dept())
+                .role(request.role())
+                .companyName(request.companyName())
+                .website(request.website())
+                .workStartDate(request.workStartDate())
+                .workEndDate(request.workEndDate())
+                .status(ReviewStatus.PENDING)
+                .build();
         Review savedReview = reviewRepository.save(review);
         return mapToReviewResponse(savedReview);
     }
@@ -111,25 +109,25 @@ public class ReviewService {
         if (review == null) {
             return null;
         }
-        return ReviewResponse.builder()
-                .id(review.getId())
-                .reviewType(review.getReviewType())
-                .title(review.getTitle())
-                .contentHtml(review.getContentHtml())
-                .ipAddress(review.getIpAddress())
-                .likeCount(review.getLikeCount())
-                .dislikeCount(review.getDislikeCount())
-                .hasComment(review.getHasComment())
-                .status(review.getStatus())
-                .isEmployee(review.getIsEmployee())
-                .dept(review.getDept())
-                .role(review.getRole())
-                .companyName(review.getCompanyName())
-                .website(review.getWebsite())
-                .workStartDate(review.getWorkStartDate())
-                .workEndDate(review.getWorkEndDate())
-                .createdAt(review.getCreatedAt())
-                .updatedAt(review.getUpdatedAt())
-                .build();
+        return new ReviewResponse(
+                review.getId(),
+                review.getReviewType(),
+                review.getTitle(),
+                review.getContentHtml(),
+                review.getIpAddress(),
+                review.getLikeCount(),
+                review.getDislikeCount(),
+                review.getHasComment(),
+                review.getStatus(),
+                review.getIsEmployee(),
+                review.getDept(),
+                review.getRole(),
+                review.getCompanyName(),
+                review.getWebsite(),
+                review.getWorkStartDate(),
+                review.getWorkEndDate(),
+                review.getCreatedAt(),
+                review.getUpdatedAt()
+        );
     }
 }

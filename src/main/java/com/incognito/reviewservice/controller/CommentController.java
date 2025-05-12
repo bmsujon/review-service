@@ -63,7 +63,7 @@ public class CommentController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest() // Starts with /api/v1/reviews/{reviewId}/comments
                 .path("/{commentId}") // Appends the comment ID
-                .buildAndExpand(commentResponse.getId()) // Populates {commentId}
+                .buildAndExpand(commentResponse.id()) // Populates {commentId}
                 .toUri();
         log.info("commentResponse: {}", commentResponse);
         return ResponseEntity.created(location).body(commentResponse);

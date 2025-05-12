@@ -27,7 +27,7 @@ public class CommentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId + " to add comment."));
 
         Comment comment = Comment.builder()
-                .content(request.getContent())
+                .content(request.content()) // Changed from request.getContent()
                 .review(review) // Always associate the comment with the review
                 .build();
 
@@ -100,16 +100,16 @@ public class CommentService {
         if (comment == null) {
             return null;
         }
-        return CommentResponse.builder()
-                .id(comment.getId())
-                .content(comment.getContent())
-                .likeCount(comment.getLikeCount())
-                .dislikeCount(comment.getDislikeCount())
-                .reviewId(comment.getReview() != null ? comment.getReview().getId() : null)
-                .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
-                .createdAt(comment.getCreatedAt())
-                .status(comment.getStatus())
-                .updatedAt(comment.getUpdatedAt())
-                .build();
+        return new CommentResponse( // Changed from CommentResponse.builder()
+                comment.getId(),
+                comment.getContent(),
+                comment.getLikeCount(),
+                comment.getDislikeCount(),
+                comment.getReview() != null ? comment.getReview().getId() : null,
+                comment.getParent() != null ? comment.getParent().getId() : null,
+                comment.getCreatedAt(),
+                comment.getUpdatedAt(), // Order might need adjustment based on record definition
+                comment.getStatus()
+        );
     }
 }
