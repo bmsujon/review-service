@@ -49,7 +49,8 @@ class CommentControllerTest {
                 null, // parentId
                 null, // createdAt
                 null, // updatedAt
-                null  // status
+                null,  // status
+                false // hasReplies
         );
 
         Mockito.when(commentService.createComment(eq(1L), isNull(), any(CommentCreateRequest.class))).thenReturn(response);
@@ -61,7 +62,8 @@ class CommentControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.content").value("Test Comment"))
-                .andExpect(jsonPath("$.reviewId").value(1L));
+                .andExpect(jsonPath("$.reviewId").value(1L))
+                .andExpect(jsonPath("$.hasReplies").value(false));
     }
 
     @Test
@@ -75,7 +77,8 @@ class CommentControllerTest {
                 null, // parentId
                 null, // createdAt
                 null, // updatedAt
-                null  // status
+                null,  // status
+                true // hasReplies
         );
 
         Mockito.when(commentService.getCommentsByReviewId(eq(1L), any(Pageable.class)))
@@ -87,7 +90,8 @@ class CommentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].content").value("Test Comment"))
-                .andExpect(jsonPath("$.content[0].reviewId").value(1L));
+                .andExpect(jsonPath("$.content[0].reviewId").value(1L))
+                .andExpect(jsonPath("$.content[0].hasReplies").value(true));
     }
 
     @Test
@@ -103,7 +107,8 @@ class CommentControllerTest {
                 null, // parentId
                 null, // createdAt
                 null, // updatedAt
-                null  // status
+                null,  // status
+                false // hasReplies
         );
 
         Mockito.when(commentService.incrementLikeCount(eq(reviewId), eq(commentId))).thenReturn(response);
@@ -111,7 +116,8 @@ class CommentControllerTest {
         mockMvc.perform(put("/api/v1/reviews/{reviewId}/comments/{commentId}/like", reviewId, commentId)) // Changed from post to put
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(commentId))
-                .andExpect(jsonPath("$.likeCount").value(1));
+                .andExpect(jsonPath("$.likeCount").value(1))
+                .andExpect(jsonPath("$.hasReplies").value(false));
     }
 
     @Test
@@ -127,7 +133,8 @@ class CommentControllerTest {
                 null, // parentId
                 null, // createdAt
                 null, // updatedAt
-                null  // status
+                null,  // status
+                true // hasReplies
         );
 
         Mockito.when(commentService.incrementDislikeCount(eq(reviewId), eq(commentId))).thenReturn(response);
@@ -135,6 +142,52 @@ class CommentControllerTest {
         mockMvc.perform(put("/api/v1/reviews/{reviewId}/comments/{commentId}/dislike", reviewId, commentId)) // Changed from post to put
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(commentId))
-                .andExpect(jsonPath("$.dislikeCount").value(1));
+                .andExpect(jsonPath("$.dislikeCount").value(1))
+                .andExpect(jsonPath("$.hasReplies").value(true));
+    }
+
+    @Test
+    void testGetRepliesOfComment_shouldReturnPageOfCommentResponses() throws Exception {
+        Long reviewId = 1L;
+        Long parentCommentId = 1L;
+        CommentResponse replyResponse = new CommentResponse(
+                2L, // Reply ID
+                "Test Reply",
+                0,
+                0,
+                reviewId,
+                parentCommentId, // parentId
+                null, // createdAt
+                null, // updatedAt
+                null, // status
+                false // hasReplies for this specific reply
+        );
+
+        Mockito.when(commentService.getRepliesOfComment(eq(reviewId), eq(parentCommentId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.singletonList(replyResponse), PageRequest.of(0, 5), 1));
+
+        mockMvc.perform(get("/api/v1/reviews/{reviewId}/comments/{commentId}/replies", reviewId, parentCommentId)
+                        .param("page", "0")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(2L))
+                .andExpect(jsonPath("$.content[0].content").value("Test Reply"))
+                .andExpect(jsonPath("$.content[0].reviewId").value(reviewId))
+                .andExpect(jsonPath("$.content[0].parentId").value(parentCommentId))
+                .andExpect(jsonPath("$.content[0].hasReplies").value(false));
+    }
+
+    @Test
+    void testGetRepliesOfComment_whenParentCommentNotFound_shouldReturnNotFound() throws Exception {
+        Long reviewId = 1L;
+        Long parentCommentId = 99L; // Non-existent comment ID
+
+        Mockito.when(commentService.getRepliesOfComment(eq(reviewId), eq(parentCommentId), any(Pageable.class)))
+                .thenThrow(new com.incognito.reviewservice.exception.ResourceNotFoundException("Comment not found with id: " + parentCommentId));
+
+        mockMvc.perform(get("/api/v1/reviews/{reviewId}/comments/{commentId}/replies", reviewId, parentCommentId)
+                        .param("page", "0")
+                        .param("size", "5"))
+                .andExpect(status().isNotFound());
     }
 }

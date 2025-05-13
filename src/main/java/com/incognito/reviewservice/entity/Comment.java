@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Formula;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,8 @@ public class Comment extends BaseEntity {
     @ColumnDefault("'ACTIVE'") // DB default for the string enum, note single quotes
     private CommentStatus status = CommentStatus.ACTIVE; // Java object default
 
+    @Formula("(EXISTS (SELECT 1 FROM comments r WHERE r.parent_id = id))")
+    private boolean hasReplies;
     // Helper methods for bidirectional relationship (optional)
 
 

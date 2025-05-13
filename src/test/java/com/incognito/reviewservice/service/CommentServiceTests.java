@@ -213,7 +213,7 @@ class CommentServiceTests {
         Page<Comment> commentPage = new PageImpl<>(comments, pageable, comments.size());
 
         when(reviewRepository.existsById(reviewId)).thenReturn(true);
-        when(commentRepository.findByReviewId(reviewId, pageable)).thenReturn(commentPage);
+        when(commentRepository.findByReviewIdAndParentIsNull(reviewId, pageable)).thenReturn(commentPage);
 
         // Act
         Page<CommentResponse> resultPage = commentService.getCommentsByReviewId(reviewId, pageable);
@@ -226,7 +226,7 @@ class CommentServiceTests {
         assertEquals("Comment 2", resultPage.getContent().get(1).content());
 
         verify(reviewRepository, times(1)).existsById(reviewId);
-        verify(commentRepository, times(1)).findByReviewId(reviewId, pageable);
+        verify(commentRepository, times(1)).findByReviewIdAndParentIsNull(reviewId, pageable);
     }
 
     @Test
@@ -242,6 +242,107 @@ class CommentServiceTests {
         });
 
         verify(reviewRepository, times(1)).existsById(reviewId);
-        verify(commentRepository, never()).findByReviewId(anyLong(), any(Pageable.class));
+        verify(commentRepository, never()).findByReviewIdAndParentIsNull(anyLong(), any(Pageable.class));
+    }
+
+    @Test
+    void getRepliesOfComment_shouldReturnPageOfCommentResponses() { // Renamed method
+        // Arrange
+        Long reviewId = 1L; // Added reviewId
+        Long parentCommentId = 1L;
+        Pageable pageable = PageRequest.of(0, 5);
+        List<Comment> replies = Arrays.asList(
+                Comment.builder().id(2L).content("Reply 1").review(review).parent(comment).hasReplies(false).build(),
+                Comment.builder().id(3L).content("Reply 2").review(review).parent(comment).hasReplies(false).build()
+        );
+        Page<Comment> replyPage = new PageImpl<>(replies, pageable, replies.size());
+
+        when(reviewRepository.existsById(reviewId)).thenReturn(true); // Mock reviewRepository call
+        when(commentRepository.existsById(parentCommentId)).thenReturn(true);
+        when(commentRepository.findByParentId(parentCommentId, pageable)).thenReturn(replyPage);
+
+        // Act
+        Page<CommentResponse> resultPage = commentService.getRepliesOfComment(reviewId, parentCommentId, pageable); // Updated method call
+
+        // Assert
+        assertNotNull(resultPage);
+        assertEquals(2, resultPage.getTotalElements());
+        assertEquals("Reply 1", resultPage.getContent().get(0).content());
+        assertFalse(resultPage.getContent().get(0).hasReplies()); // Assert hasReplies
+
+        verify(reviewRepository, times(1)).existsById(reviewId); // Verify reviewRepository call
+        verify(commentRepository, times(1)).existsById(parentCommentId);
+        verify(commentRepository, times(1)).findByParentId(parentCommentId, pageable);
+    }
+
+    @Test
+    void getRepliesOfComment_whenParentCommentNotFound_shouldThrowResourceNotFoundException() { // Renamed method
+        // Arrange
+        Long reviewId = 1L; // Added reviewId
+        Long parentCommentId = 1L;
+        Pageable pageable = PageRequest.of(0, 5);
+
+        when(reviewRepository.existsById(reviewId)).thenReturn(true); // Mock reviewRepository call
+        when(commentRepository.existsById(parentCommentId)).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> {
+            commentService.getRepliesOfComment(reviewId, parentCommentId, pageable); // Updated method call
+        });
+
+        verify(reviewRepository, times(1)).existsById(reviewId); // Verify reviewRepository call
+        verify(commentRepository, times(1)).existsById(parentCommentId);
+        verify(commentRepository, never()).findByParentId(anyLong(), any(Pageable.class));
+    }
+
+    @Test
+    void getRepliesOfComment_whenReviewNotFound_shouldThrowResourceNotFoundException() {
+        // Arrange
+        Long reviewId = 1L;
+        Long parentCommentId = 1L;
+        Pageable pageable = PageRequest.of(0, 5);
+
+        when(reviewRepository.existsById(reviewId)).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> {
+            commentService.getRepliesOfComment(reviewId, parentCommentId, pageable);
+        });
+
+        verify(reviewRepository, times(1)).existsById(reviewId);
+        verify(commentRepository, never()).existsById(anyLong());
+        verify(commentRepository, never()).findByParentId(anyLong(), any(Pageable.class));
+    }
+
+    @Test
+    void createComment_shouldSetHasRepliesToFalseInitially() {
+        // Arrange
+        CommentCreateRequest request = new CommentCreateRequest("New comment content");
+        Comment savedComment = Comment.builder()
+                .id(10L)
+                .content(request.content())
+                .review(review)
+                .likeCount(0)
+                .dislikeCount(0)
+                .status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
+                .hasReplies(false) // Expect hasReplies to be false by default via @Formula or explicit set
+                .build();
+
+        when(reviewRepository.findById(review.getId())).thenReturn(Optional.of(review));
+        when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
+
+        // Act
+        CommentResponse response = commentService.createComment(review.getId(), null, request);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(savedComment.getId(), response.id());
+        assertEquals(request.content(), response.content());
+        assertFalse(response.hasReplies(), "Newly created comment should not have replies indicated yet");
+
+        // Verify that the saved entity (if we could inspect it directly before mapping)
+        // would have hasReplies as false. The @Formula handles this at DB query time,
+        // so direct assertion on the 'savedComment' mock's 'hasReplies' field is what we test in mapToCommentResponse.
+        // Here, we primarily test the response DTO.
     }
 }

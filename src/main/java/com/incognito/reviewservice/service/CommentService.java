@@ -53,7 +53,7 @@ public class CommentService {
         if (!reviewRepository.existsById(reviewId)) {
             throw new ResourceNotFoundException("Review not found with id: " + reviewId);
         }
-        Page<Comment> commentPage = commentRepository.findByReviewId(reviewId, pageable);
+        Page<Comment> commentPage = commentRepository.findByReviewIdAndParentIsNull(reviewId, pageable);
         return commentPage.map(this::mapToCommentResponse);
     }
 
@@ -109,7 +109,20 @@ public class CommentService {
                 comment.getParent() != null ? comment.getParent().getId() : null,
                 comment.getCreatedAt(),
                 comment.getUpdatedAt(), // Order might need adjustment based on record definition
-                comment.getStatus()
+                comment.getStatus(),
+                comment.isHasReplies()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CommentResponse> getRepliesOfComment(Long reviewId, Long commentId, Pageable pageable) {
+        if (!reviewRepository.existsById(reviewId)) {
+            throw new ResourceNotFoundException("Review not found with id: " + reviewId);
+        }
+        if (!commentRepository.existsById(commentId)) {
+            throw new ResourceNotFoundException("Comment not found with id: " + commentId);
+        }
+        Page<Comment> commentPage = commentRepository.findByParentId(commentId, pageable);
+        return commentPage.map(this::mapToCommentResponse);
     }
 }

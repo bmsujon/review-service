@@ -31,7 +31,10 @@ public record CommentResponse(
     Instant updatedAt,
 
     @Schema(description = "Status of the comment.", example = "ACTIVE")
-    CommentStatus status
+    CommentStatus status,
+
+    @Schema(description = "Indicates if the comment has been reported.", example = "false")
+    Boolean hasReplies // Indicates if the comment has replies
     // Add other fields like commenterInfo if needed
 ) {
 }

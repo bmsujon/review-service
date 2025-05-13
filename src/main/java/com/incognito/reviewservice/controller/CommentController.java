@@ -68,7 +68,7 @@ public class CommentController {
         return ResponseEntity.created(location).body(commentResponse);
     }
 
-    @Operation(summary = "Get comments for a review", description = "Retrieves a paginated list of comments for a specific review.")
+    @Operation(summary = "Get top level comments for a review", description = "Retrieves a paginated list of top level comments for a specific review.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved comments",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -133,5 +133,28 @@ public class CommentController {
         return ResponseEntity.ok(updatedComment);
     }
 
+    //Let's make another api which will return paginated list of replies of a comment
+    @Operation(summary = "Get replies for a comment", description = "Retrieves a paginated list of replies for a specific comment.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved replies",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Page.class))), // Page of CommentResponse
+            @ApiResponse(responseCode = "404", description = "Comment not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Object.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Object.class)))
+    })
+    @GetMapping("/{commentId}/replies")
+    public ResponseEntity<Page<CommentResponse>> getRepliesOfComment(
+            @Parameter(description = "ID of the review", required = true, example = "1")
+            @PathVariable Long reviewId,
+            @Parameter(description = "ID of the comment whose replies are to be retrieved", required = true, example = "101")
+            @PathVariable Long commentId,
+            @ParameterObject @PageableDefault(size = 10, sort = "createdAt,desc") Pageable pageable) {
+        Page<CommentResponse> replyPage = commentService.getRepliesOfComment(reviewId, commentId, pageable);
+        return ResponseEntity.ok(replyPage);
+    }
     // Add other controller methods here (e.g., getCommentById, updateComment, deleteComment, likeComment, dislikeComment)
 }
