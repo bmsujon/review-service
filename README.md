@@ -101,6 +101,11 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
   - Increment the dislike count of a comment
   - Response: `200 OK`
 
+- `GET /{commentId}/replies`
+  - Retrieve a paginated list of replies for a comment
+  - Query Parameters: `page`, `size`
+  - Response: `200 OK`
+
 ## Database Schema
 
 ### Reviews Table
