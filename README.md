@@ -126,9 +126,12 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 - `website`: VARCHAR(2048), Website of the company
 - `work_start_date`: TIMESTAMP WITH TIME ZONE, Work start date for employee reviews
 - `work_end_date`: TIMESTAMP WITH TIME ZONE, Work end date for employee reviews
+- `reviewer_name`: VARCHAR(100), Name of the reviewer (default: 'Anonymous')
+- `created_by`: UUID, ID of the user who created the record
+- `updated_by`: UUID, ID of the user who last updated the record
 - `created_at`: TIMESTAMP WITH TIME ZONE, Timestamp of creation (default: CURRENT_TIMESTAMP)
 - `updated_at`: TIMESTAMP WITH TIME ZONE, Timestamp of last update (default: CURRENT_TIMESTAMP)
-- `version`: BIGINT, Version number for optimistic locking (default: 0)
+- `version`: INT, Version number for optimistic locking (default: 1)
 
 ### Comments Table
 
@@ -141,9 +144,12 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 - `like_count`: INTEGER, Number of likes (default: 0)
 - `dislike_count`: INTEGER, Number of dislikes (default: 0)
 - `status`: VARCHAR(50), Status of the comment (e.g., ACTIVE, HIDDEN, DELETED, default: 'ACTIVE')
+- `commenter_name`: VARCHAR(100), Name of the commenter (default: 'Anonymous')
+- `created_by`: UUID, ID of the user who created the record
+- `updated_by`: UUID, ID of the user who last updated the record
 - `created_at`: TIMESTAMP WITH TIME ZONE, Timestamp of creation (default: CURRENT_TIMESTAMP)
 - `updated_at`: TIMESTAMP WITH TIME ZONE, Timestamp of last update (default: CURRENT_TIMESTAMP)
-- `version`: BIGINT, Version number for optimistic locking (default: 0)
+- `version`: INT, Version number for optimistic locking (default: 1)
 
 ## Testing
 

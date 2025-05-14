@@ -23,9 +23,12 @@ CREATE TABLE reviews (
     website VARCHAR(2048),
     work_start_date TIMESTAMP WITH TIME ZONE,
     work_end_date TIMESTAMP WITH TIME ZONE,
+    reviewer_name VARCHAR(100) DEFAULT 'Anonymous',
+    created_by UUID,
+    updated_by UUID,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    version BIGINT NOT NULL DEFAULT 0
+    version INT NOT NULL DEFAULT 1
 );
 
 -- Add indexes to 'reviews' table
@@ -45,9 +48,12 @@ CREATE TABLE comments (
     like_count INTEGER NOT NULL DEFAULT 0,
     dislike_count INTEGER NOT NULL DEFAULT 0,
     status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+    commenter_name VARCHAR(100) DEFAULT 'Anonymous',
+    created_by UUID,
+    updated_by UUID,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    version BIGINT NOT NULL DEFAULT 0,
+    version INT NOT NULL DEFAULT 1,
     CONSTRAINT fk_comments_review FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
     CONSTRAINT fk_comments_parent FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE SET NULL -- Or ON DELETE CASCADE depending on desired behavior for replies
 );
