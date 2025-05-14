@@ -39,6 +39,7 @@ public class ReviewService {
                 .workStartDate(request.workStartDate())
                 .workEndDate(request.workEndDate())
                 .status(ReviewStatus.PENDING)
+                .reviewerName(request.reviewerName())
                 .build();
         Review savedReview = reviewRepository.save(review);
         return mapToReviewResponse(savedReview);
@@ -127,7 +128,9 @@ public class ReviewService {
                 review.getWorkStartDate(),
                 review.getWorkEndDate(),
                 review.getCreatedAt(),
-                review.getUpdatedAt()
+                review.getUpdatedAt(),
+                review.getReviewerName(),
+                review.getTotalComments()
         );
     }
 }

@@ -29,6 +29,7 @@ public class CommentService {
         Comment comment = Comment.builder()
                 .content(request.content()) // Changed from request.getContent()
                 .review(review) // Always associate the comment with the review
+                .commenterName(request.commenterName())
                 .build();
 
         if (parentId != null) {
@@ -110,7 +111,9 @@ public class CommentService {
                 comment.getCreatedAt(),
                 comment.getUpdatedAt(), // Order might need adjustment based on record definition
                 comment.getStatus(),
-                comment.isHasReplies()
+                comment.isHasReplies(),
+                comment.getCommenterName(),
+                comment.getTotalReplies()
         );
     }
 

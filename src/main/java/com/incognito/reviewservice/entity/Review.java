@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Formula;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -90,6 +91,14 @@ public class Review extends BaseEntity {
 
     @Column(name = "work_end_date")
     private Instant workEndDate;
+
+    @Builder.Default
+    @ColumnDefault("'Anonymous'") // Default value for the reviewer name, with single quotes
+    @Column(name = "reviewer_name", length = 100)
+    private String reviewerName = "Anonymous"; // Optional field for the name of the reviewer
+
+    @Formula("(SELECT COUNT(*) FROM comments c WHERE c.review_id = id)")
+    private Integer totalComments;
 
     @Builder.Default
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

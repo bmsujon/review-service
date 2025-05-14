@@ -59,6 +59,12 @@ public record ReviewResponse(
     Instant createdAt,
 
     @Schema(description = "Timestamp of when the review was last updated.", example = "2023-10-27T11:00:00Z")
-    Instant updatedAt
+    Instant updatedAt,
+
+    @Schema(description = "Name of the reviewer.", example = "Jane Doe", defaultValue = "Anonymous")
+    String reviewerName,
+
+    @Schema(description = "Total number of comments on the review.", example = "5")
+    Integer totalComments // New field to track the number of comments
 ) {
 }

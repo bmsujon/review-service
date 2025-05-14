@@ -34,7 +34,12 @@ public record CommentResponse(
     CommentStatus status,
 
     @Schema(description = "Indicates if the comment has been reported.", example = "false")
-    Boolean hasReplies // Indicates if the comment has replies
-    // Add other fields like commenterInfo if needed
+    Boolean hasReplies, // Indicates if the comment has replies
+
+    @Schema(description = "Name of the commenter.", example = "John Doe", defaultValue = "Anonymous")
+    String commenterName,
+
+    @Schema(description = "Number of replies to this comment.", example = "2")
+    Integer totalReplies // New field to track the number of replies
 ) {
 }

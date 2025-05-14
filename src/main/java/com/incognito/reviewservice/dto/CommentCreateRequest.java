@@ -9,7 +9,9 @@ public record CommentCreateRequest(
     @NotBlank(message = "Comment content cannot be blank")
     @Size(min = 1, max = 5000, message = "Comment content must be between 1 and 5000 characters")
     @Schema(description = "The content of the comment.", requiredMode = Schema.RequiredMode.REQUIRED, minLength = 1, maxLength = 5000, example = "Thanks for the detailed review!")
-    String content
+    String content,
+    @Schema(description = "Name of the commenter.", example = "John Doe", defaultValue = "Anonymous")
+    String commenterName // Optional field for the name of the commenter
     // You might add other fields here later, e.g., commenterId, commenterName, if not anonymous
 ) {
 }

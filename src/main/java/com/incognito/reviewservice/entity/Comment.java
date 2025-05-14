@@ -66,9 +66,17 @@ public class Comment extends BaseEntity {
 
     @Formula("(EXISTS (SELECT 1 FROM comments r WHERE r.parent_id = id))")
     private boolean hasReplies;
+
+    @Builder.Default
+    @Column(name = "commenter_name", length = 100)
+    @ColumnDefault("'Anonymous'") // Default value for the column, with single quotes
+    private String commenterName = "Anonymous"; // Default value for anonymous comments
+    // this field will not be int DB, but will be used in the application logic
+
+    @Formula("(SELECT COUNT(*) FROM comments r WHERE r.parent_id = id)")
+    // This field is not stored in the database but is calculated on the fly
+    private Integer totalReplies;
     // Helper methods for bidirectional relationship (optional)
-
-
     public void addReply(Comment reply) {
         if (this.replies == null) {
             this.replies = new ArrayList<>();
