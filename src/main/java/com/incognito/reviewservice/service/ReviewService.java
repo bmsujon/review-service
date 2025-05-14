@@ -9,6 +9,7 @@ import com.incognito.reviewservice.model.ReviewStatus;
 import com.incognito.reviewservice.repository.ReviewRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -39,7 +40,7 @@ public class ReviewService {
                 .workStartDate(request.workStartDate())
                 .workEndDate(request.workEndDate())
                 .status(ReviewStatus.PENDING)
-                .reviewerName(request.reviewerName())
+                .reviewerName(ObjectUtils.isEmpty(request.reviewerName()) ? "Anonymous" : request.reviewerName())
                 .build();
         Review savedReview = reviewRepository.save(review);
         return mapToReviewResponse(savedReview);
@@ -130,7 +131,7 @@ public class ReviewService {
                 review.getCreatedAt(),
                 review.getUpdatedAt(),
                 review.getReviewerName(),
-                review.getTotalComments()
+                review.getTotalComments() == null ? 0 : review.getTotalComments() // Handle null totalComments
         );
     }
 }

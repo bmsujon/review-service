@@ -9,6 +9,7 @@ import com.incognito.reviewservice.exception.ResourceNotFoundException;
 import com.incognito.reviewservice.repository.CommentRepository;
 import com.incognito.reviewservice.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page; // Import Page
 import org.springframework.data.domain.Pageable; // Import Pageable
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class CommentService {
         Comment comment = Comment.builder()
                 .content(request.content()) // Changed from request.getContent()
                 .review(review) // Always associate the comment with the review
-                .commenterName(request.commenterName())
+                .commenterName(request.commenterName()) // Use name from request, can be null
                 .build();
 
         if (parentId != null) {
@@ -112,7 +113,7 @@ public class CommentService {
                 comment.getUpdatedAt(), // Order might need adjustment based on record definition
                 comment.getStatus(),
                 comment.isHasReplies(),
-                comment.getCommenterName(),
+                ObjectUtils.isEmpty(comment.getCommenterName()) ? "Anonymous" : comment.getCommenterName(), // Default to Anonymous if null/empty
                 comment.getTotalReplies()
         );
     }

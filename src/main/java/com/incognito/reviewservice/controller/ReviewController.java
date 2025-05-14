@@ -51,7 +51,7 @@ public class ReviewController {
     public ResponseEntity<ReviewResponse> createReview(@Valid @RequestBody ReviewCreateRequest request) {
         ReviewResponse reviewResponse = reviewService.createReview(request);
         URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
+                .fromCurrentRequest() // Reverted to fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(reviewResponse.id())
                 .toUri();

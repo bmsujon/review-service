@@ -1,7 +1,6 @@
-    package com.incognito.reviewservice.exception;
+package com.incognito.reviewservice.exception;
 
     import lombok.extern.slf4j.Slf4j;
-    import org.apache.coyote.BadRequestException;
     import org.springframework.http.HttpHeaders;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.HttpStatusCode;
@@ -93,9 +92,9 @@
         }
 
         // In GlobalExceptionHandler.java
-        @ExceptionHandler(BadRequestException.class)
+        @ExceptionHandler(com.incognito.reviewservice.exception.BadRequestException.class) // Changed to our custom exception
         public ResponseEntity<Object> handleBadRequestException(
-                BadRequestException ex, WebRequest request) {
+                com.incognito.reviewservice.exception.BadRequestException ex, WebRequest request) { // Changed to our custom exception
             log.warn("Bad request: {}", ex.getMessage());
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("timestamp", LocalDateTime.now());
@@ -107,4 +106,3 @@
         }
 
     }
-    

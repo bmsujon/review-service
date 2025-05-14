@@ -1,233 +1,316 @@
 package com.incognito.reviewservice.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incognito.reviewservice.dto.ReviewCreateRequest;
 import com.incognito.reviewservice.dto.ReviewResponse;
+import com.incognito.reviewservice.exception.ResourceNotFoundException;
+import com.incognito.reviewservice.model.ReviewStatus;
 import com.incognito.reviewservice.model.ReviewType;
 import com.incognito.reviewservice.service.ReviewService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.hamcrest.CoreMatchers.endsWith;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
 @WebMvcTest(ReviewController.class)
+@Import(ReviewControllerTest.ReviewControllerTestConfig.class)
 class ReviewControllerTest {
+
+    @TestConfiguration
+    static class ReviewControllerTestConfig {
+        @Bean
+        public ReviewService reviewService() {
+            return Mockito.mock(ReviewService.class);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Autowired
     private ReviewService reviewService;
 
-    @Test
-    void testCreateReview() throws Exception {
-        ReviewResponse response = new ReviewResponse(
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private ReviewCreateRequest reviewCreateRequest;
+    private ReviewResponse reviewResponse;
+
+    @BeforeEach
+    void setUp() {
+        reviewCreateRequest = new ReviewCreateRequest(
+                ReviewType.POSITIVE,
+                "Great Place to Work",
+                "<p>Amazing culture and benefits.</p>",
+                "192.168.1.100",
+                "Engineering",
+                "Software Developer",
+                "Tech Solutions Inc.",
+                "http://techsolutions.example.com",
+                true,
+                Instant.parse("2022-01-01T00:00:00Z"),
+                Instant.parse("2023-01-01T00:00:00Z"),
+                "John Doe"
+        );
+
+        reviewResponse = new ReviewResponse(
                 1L,
                 ReviewType.POSITIVE,
-                "Title",
-                "Content Test Content",
-                "127.0.0.1",
+                "Great Place to Work",
+                "<p>Amazing culture and benefits.</p>",
+                "192.168.1.100",
                 0,
                 0,
                 false,
-                com.incognito.reviewservice.model.ReviewStatus.PENDING,
+                ReviewStatus.PENDING,
                 true,
                 "Engineering",
-                "Software Engineer",
-                "Incognito Corp",
-                "http://incognito.com",
-                null, // workStartDate
-                null, // workEndDate
-                null, // createdAt
-                null // updatedAt
+                "Software Developer",
+                "Tech Solutions Inc.",
+                "http://techsolutions.example.com",
+                Instant.parse("2022-01-01T00:00:00Z"),
+                Instant.parse("2023-01-01T00:00:00Z"),
+                Instant.now(),
+                Instant.now(),
+                "John Doe",
+                0
         );
-
-        Mockito.when(reviewService.createReview(any(ReviewCreateRequest.class))).thenReturn(response);
-
-        mockMvc.perform(post("/api/v1/reviews")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Title\",\"content\":\"Content Test Content\",\"reviewType\":\"POSITIVE\", \"companyName\":\"Incognito Corp\", \"ipAddress\":\"127.0.0.1\", \"isEmployee\":true, \"dept\":\"Engineering\", \"role\":\"Software Engineer\", \"website\":\"http://incognito.com\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.title").value("Title"))
-                .andExpect(jsonPath("$.contentHtml").value("Content Test Content"))
-                .andExpect(jsonPath("$.reviewType").value("POSITIVE"))
-                .andExpect(jsonPath("$.companyName").value("Incognito Corp"))
-                .andExpect(jsonPath("$.ipAddress").value("127.0.0.1"))
-                .andExpect(jsonPath("$.isEmployee").value(true))
-                .andExpect(jsonPath("$.dept").value("Engineering"))
-                .andExpect(jsonPath("$.role").value("Software Engineer"))
-                .andExpect(jsonPath("$.website").value("http://incognito.com"))
-                .andExpect(jsonPath("$.likeCount").value(0))
-                .andExpect(jsonPath("$.dislikeCount").value(0))
-                .andExpect(jsonPath("$.hasComment").value(false))
-                .andExpect(jsonPath("$.status").value("PENDING"));
     }
 
     @Test
-    void testGetReviews() throws Exception {
-        ReviewResponse reviewResponse = new ReviewResponse(
-                1L,
-                ReviewType.NEGATIVE,
-                "Test Title",
-                "Test Content Sufficiently Long",
-                null, // ipAddress
-                10,
-                1,
-                null, // hasComment
-                com.incognito.reviewservice.model.ReviewStatus.APPROVED,
-                null, // isEmployee
-                null, // dept
-                null, // role
-                "Incognito Corp",
-                null, // website
-                null, // workStartDate
-                null, // workEndDate
-                null, // createdAt
-                null // updatedAt
-        );
+    void testCreateReview_Success() throws Exception {
+        // Given
+        given(reviewService.createReview(any(ReviewCreateRequest.class))).willReturn(reviewResponse);
 
-        Mockito.when(reviewService.getReviews(isNull(String.class), isNull(ReviewType.class), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(reviewResponse), PageRequest.of(0, 10), 1));
+        // When
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/reviews")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reviewCreateRequest)));
 
-        mockMvc.perform(get("/api/v1/reviews")
-                        .param("page", "0")
-                        .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1L))
-                .andExpect(jsonPath("$.content[0].title").value("Test Title"))
-                .andExpect(jsonPath("$.content[0].contentHtml").value("Test Content Sufficiently Long"))
-                .andExpect(jsonPath("$.content[0].reviewType").value("NEGATIVE"))
-                .andExpect(jsonPath("$.content[0].companyName").value("Incognito Corp"))
-                .andExpect(jsonPath("$.content[0].status").value("APPROVED"))
-                .andExpect(jsonPath("$.content[0].likeCount").value(10))
-                .andExpect(jsonPath("$.content[0].dislikeCount").value(1));
+        // Then
+        resultActions.andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andDo(mvcResult -> {
+                    String locationHeader = mvcResult.getResponse().getHeader("Location");
+                    assertNotNull(locationHeader, "Location header should not be null");
+                    java.net.URI locationUri = new java.net.URI(locationHeader);
+                    assertEquals("/api/v1/reviews/" + reviewResponse.id(), locationUri.getPath(), "Location URI path mismatch");
+                })
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(reviewResponse.id().intValue())))
+                .andExpect(jsonPath("$.title", is(reviewResponse.title())))
+                .andExpect(jsonPath("$.reviewerName", is(reviewResponse.reviewerName())));
+
+        verify(reviewService).createReview(any(ReviewCreateRequest.class));
     }
 
     @Test
-    void testGetReviewById() throws Exception {
+    void testCreateReview_ValidationFailure() throws Exception {
+        // Given
+        ReviewCreateRequest invalidRequest = new ReviewCreateRequest(
+                null,
+                "",
+                "<p>Content</p>",
+                "127.0.0.1", null, null, null, null, false, null, null, null);
+
+        // When
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/reviews")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)));
+
+        // Then
+        resultActions.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetReviewById_Success() throws Exception {
+        // Given
         Long reviewId = 1L;
-        ReviewResponse response = new ReviewResponse(
-                reviewId,
-                ReviewType.POSITIVE,
-                "Test Title",
-                "Test Content",
-                "127.0.0.1",
-                5,
-                0,
-                true,
-                com.incognito.reviewservice.model.ReviewStatus.REJECTED,
-                false,
-                "Sales",
-                "Manager",
-                "Incognito Corp",
-                "http://example.com",
-                null, // workStartDate
-                null, // workEndDate
-                null, // createdAt
-                null // updatedAt
-        );
+        given(reviewService.getReviewById(reviewId)).willReturn(reviewResponse);
 
-        Mockito.when(reviewService.getReviewById(eq(reviewId))).thenReturn(response);
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/{id}", reviewId));
 
-        mockMvc.perform(get("/api/v1/reviews/{id}", reviewId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
-                .andExpect(jsonPath("$.title").value("Test Title"))
-                .andExpect(jsonPath("$.contentHtml").value("Test Content"))
-                .andExpect(jsonPath("$.reviewType").value("POSITIVE"))
-                .andExpect(jsonPath("$.companyName").value("Incognito Corp"))
-                .andExpect(jsonPath("$.ipAddress").value("127.0.0.1"))
-                .andExpect(jsonPath("$.isEmployee").value(false))
-                .andExpect(jsonPath("$.dept").value("Sales"))
-                .andExpect(jsonPath("$.role").value("Manager"))
-                .andExpect(jsonPath("$.website").value("http://example.com"))
-                .andExpect(jsonPath("$.likeCount").value(5))
-                .andExpect(jsonPath("$.dislikeCount").value(0))
-                .andExpect(jsonPath("$.hasComment").value(true))
-                .andExpect(jsonPath("$.status").value("REJECTED"));
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(reviewResponse.id().intValue())))
+                .andExpect(jsonPath("$.title", is(reviewResponse.title())));
+
+        verify(reviewService).getReviewById(reviewId);
     }
 
     @Test
-    void testLikeReview() throws Exception {
-        Long reviewId = 1L;
-        ReviewResponse response = new ReviewResponse(
-                reviewId,
-                ReviewType.POSITIVE,
-                "Test Title",
-                "Test Content",
-                null, // ipAddress
-                1, // likeCount
-                0, // dislikeCount
-                null, // hasComment
-                null, // status
-                null, // isEmployee
-                null, // dept
-                null, // role
-                null, // companyName
-                null, // website
-                null, // workStartDate
-                null, // workEndDate
-                null, // createdAt
-                null // updatedAt
-        );
+    void testGetReviewById_NotFound() throws Exception {
+        // Given
+        Long reviewId = 99L;
+        given(reviewService.getReviewById(reviewId)).willThrow(new ResourceNotFoundException("Review not found"));
 
-        Mockito.when(reviewService.incrementLikeCount(eq(reviewId))).thenReturn(response);
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/{id}", reviewId));
 
-        mockMvc.perform(put("/api/v1/reviews/{reviewId}/like", reviewId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
-                .andExpect(jsonPath("$.likeCount").value(1));
+        // Then
+        resultActions.andExpect(status().isNotFound());
+        verify(reviewService).getReviewById(reviewId);
     }
 
     @Test
-    void testDislikeReview() throws Exception {
+    void testGetReviews_Success_NoFilters() throws Exception {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<ReviewResponse> reviewList = Collections.singletonList(reviewResponse);
+        Page<ReviewResponse> reviewPage = new PageImpl<>(reviewList, pageable, reviewList.size());
+
+        given(reviewService.getReviews(eq(null), eq(null), any(Pageable.class))).willReturn(reviewPage);
+
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews")
+                .param("page", "0")
+                .param("size", "10"));
+
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].id", is(reviewResponse.id().intValue())))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.totalElements", is(1)));
+
+        verify(reviewService).getReviews(eq(null), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    void testGetReviews_Success_WithFilters() throws Exception {
+        // Given
+        String companyName = "Tech Solutions Inc.";
+        ReviewType reviewType = ReviewType.POSITIVE;
+        Pageable pageable = PageRequest.of(0, 5);
+        List<ReviewResponse> reviewList = Collections.singletonList(reviewResponse);
+        Page<ReviewResponse> reviewPage = new PageImpl<>(reviewList, pageable, reviewList.size());
+
+        given(reviewService.getReviews(eq(companyName), eq(reviewType), any(Pageable.class))).willReturn(reviewPage);
+
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews")
+                .param("companyName", companyName)
+                .param("reviewType", reviewType.toString())
+                .param("page", "0")
+                .param("size", "5"));
+
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].companyName", is(companyName)));
+
+        verify(reviewService).getReviews(eq(companyName), eq(reviewType), any(Pageable.class));
+    }
+
+    @Test
+    void testLikeReview_Success() throws Exception {
+        // Given
         Long reviewId = 1L;
-        ReviewResponse response = new ReviewResponse(
-                reviewId,
-                ReviewType.POSITIVE,
-                "Test Title",
-                "Test Content",
-                null, // ipAddress
-                0, // likeCount
-                1, // dislikeCount
-                null, // hasComment
-                null, // status
-                null, // isEmployee
-                null, // dept
-                null, // role
-                null, // companyName
-                null, // website
-                null, // workStartDate
-                null, // workEndDate
-                null, // createdAt
-                null // updatedAt
+        ReviewResponse likedResponse = new ReviewResponse(
+            reviewResponse.id(), reviewResponse.reviewType(), reviewResponse.title(), reviewResponse.contentHtml(),
+            reviewResponse.ipAddress(), reviewResponse.likeCount() + 1, reviewResponse.dislikeCount(),
+            reviewResponse.hasComment(), reviewResponse.status(), reviewResponse.isEmployee(), reviewResponse.dept(),
+            reviewResponse.role(), reviewResponse.companyName(), reviewResponse.website(), reviewResponse.workStartDate(),
+            reviewResponse.workEndDate(), reviewResponse.createdAt(), reviewResponse.updatedAt(), reviewResponse.reviewerName(),
+            reviewResponse.totalComments()
         );
+        given(reviewService.incrementLikeCount(reviewId)).willReturn(likedResponse);
 
-        Mockito.when(reviewService.incrementDislikeCount(eq(reviewId))).thenReturn(response);
+        // When
+        ResultActions resultActions = mockMvc.perform(put("/api/v1/reviews/{reviewId}/like", reviewId));
 
-        mockMvc.perform(put("/api/v1/reviews/{reviewId}/dislike", reviewId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
-                .andExpect(jsonPath("$.dislikeCount").value(1));
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(reviewId.intValue())))
+                .andExpect(jsonPath("$.likeCount", is(likedResponse.likeCount())));
+
+        verify(reviewService).incrementLikeCount(reviewId);
+    }
+
+    @Test
+    void testLikeReview_NotFound() throws Exception {
+        // Given
+        Long reviewId = 99L;
+        given(reviewService.incrementLikeCount(reviewId)).willThrow(new ResourceNotFoundException("Review not found"));
+
+        // When
+        ResultActions resultActions = mockMvc.perform(put("/api/v1/reviews/{reviewId}/like", reviewId));
+
+        // Then
+        resultActions.andExpect(status().isNotFound());
+        verify(reviewService).incrementLikeCount(reviewId);
+    }
+
+    @Test
+    void testDislikeReview_Success() throws Exception {
+        // Given
+        Long reviewId = 1L;
+         ReviewResponse dislikedResponse = new ReviewResponse(
+            reviewResponse.id(), reviewResponse.reviewType(), reviewResponse.title(), reviewResponse.contentHtml(),
+            reviewResponse.ipAddress(), reviewResponse.likeCount(), reviewResponse.dislikeCount() + 1,
+            reviewResponse.hasComment(), reviewResponse.status(), reviewResponse.isEmployee(), reviewResponse.dept(),
+            reviewResponse.role(), reviewResponse.companyName(), reviewResponse.website(), reviewResponse.workStartDate(),
+            reviewResponse.workEndDate(), reviewResponse.createdAt(), reviewResponse.updatedAt(), reviewResponse.reviewerName(),
+            reviewResponse.totalComments()
+        );
+        given(reviewService.incrementDislikeCount(reviewId)).willReturn(dislikedResponse);
+
+        // When
+        ResultActions resultActions = mockMvc.perform(put("/api/v1/reviews/{reviewId}/dislike", reviewId));
+
+        // Then
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(reviewId.intValue())))
+                .andExpect(jsonPath("$.dislikeCount", is(dislikedResponse.dislikeCount())));
+
+        verify(reviewService).incrementDislikeCount(reviewId);
+    }
+
+    @Test
+    void testDislikeReview_NotFound() throws Exception {
+        // Given
+        Long reviewId = 99L;
+        given(reviewService.incrementDislikeCount(reviewId)).willThrow(new ResourceNotFoundException("Review not found"));
+
+        // When
+        ResultActions resultActions = mockMvc.perform(put("/api/v1/reviews/{reviewId}/dislike", reviewId));
+
+        // Then
+        resultActions.andExpect(status().isNotFound());
+        verify(reviewService).incrementDislikeCount(reviewId);
     }
 }
