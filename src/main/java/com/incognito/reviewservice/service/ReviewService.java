@@ -119,7 +119,7 @@ public class ReviewService {
                 review.getIpAddress(),
                 review.getLikeCount(),
                 review.getDislikeCount(),
-                review.getHasComment(),
+                review.hasAnyComment(),
                 review.getStatus(),
                 review.getIsEmployee(),
                 review.getDept(),

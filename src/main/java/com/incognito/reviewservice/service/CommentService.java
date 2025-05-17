@@ -112,7 +112,7 @@ public class CommentService {
                 comment.getCreatedAt(),
                 comment.getUpdatedAt(), // Order might need adjustment based on record definition
                 comment.getStatus(),
-                comment.isHasReplies(),
+                comment.hasAnyReply(),
                 ObjectUtils.isEmpty(comment.getCommenterName()) ? "Anonymous" : comment.getCommenterName(), // Default to Anonymous if null/empty
                 comment.getTotalReplies()
         );

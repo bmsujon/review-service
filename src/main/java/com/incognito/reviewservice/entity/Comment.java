@@ -8,6 +8,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Formula;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -15,11 +16,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(of = "id", callSuper = false) // Added
+@ToString(exclude = {"parent", "replies", "review", "content"}) // Added
 @Entity
 @Table(name = "comments", indexes = {
-    @Index(name = "idx_comments_review_id", columnList = "review_id"), // review_id is the FK column
-    @Index(name = "idx_comments_parent_id", columnList = "parent_id"), // parent_id is the FK column
-    @Index(name = "idx_comments_created_at", columnList = "created_at")
+        @Index(name = "idx_comments_review_id", columnList = "review_id"),
+        @Index(name = "idx_comments_parent_id", columnList = "parent_id"),
+        @Index(name = "idx_comments_created_at", columnList = "created_at")
 })
 public class Comment extends BaseEntity {
 
@@ -28,7 +31,7 @@ public class Comment extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id") // This column in 'comments' table references another 'comments.id'
+    @JoinColumn(name = "parent_id")
     private Comment parent;
 
     @Builder.Default
@@ -36,11 +39,14 @@ public class Comment extends BaseEntity {
     private List<Comment> replies = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id", nullable = false) // This column in 'comments' table references 'reviews.id'
+    @JoinColumn(name = "review_id", nullable = false)
     private Review review;
 
+    // Consider clarifying the purpose of userName vs. commenterName.
+    // If userName is a user-provided string, add @Size.
     @Column(name = "user_name", length = 100)
-    private String userName; // Or this could be a UUID referencing a User entity
+    // @Size(max = 100) // Example if it's a user-provided name
+    private String userName;
 
     @NotBlank
     @Lob
@@ -60,37 +66,67 @@ public class Comment extends BaseEntity {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50) // Specify VARCHAR length
-    @ColumnDefault("'ACTIVE'") // DB default for the string enum, note single quotes
-    private CommentStatus status = CommentStatus.ACTIVE; // Java object default
-
-    @Formula("(EXISTS (SELECT 1 FROM comments r WHERE r.parent_id = id))")
-    private boolean hasReplies;
+    @Column(nullable = false, length = 50)
+    @ColumnDefault("'ACTIVE'")
+    private CommentStatus status = CommentStatus.ACTIVE;
 
     @Builder.Default
+    @ColumnDefault("'Anonymous'")
     @Column(name = "commenter_name", length = 100)
-    @ColumnDefault("'Anonymous'") // Default value for the column, with single quotes
-    private String commenterName = "Anonymous"; // Default value for anonymous comments
-    // this field will not be int DB, but will be used in the application logic
+    // @Size(max = 100) // Example
+    private String commenterName = "Anonymous";
 
     @Formula("(SELECT COUNT(*) FROM comments r WHERE r.parent_id = id)")
-    // This field is not stored in the database but is calculated on the fly
     private Integer totalReplies;
-    // Helper methods for bidirectional relationship (optional)
-    public void addReply(Comment reply) {
-        if (this.replies == null) {
-            this.replies = new ArrayList<>();
-        }
-        this.replies.add(reply);
-        reply.setParent(this);
-        reply.setReview(this.getReview()); // This line is crucial for replies
+
+    /**
+     * Checks if this comment has any replies.
+     * This is derived from {@link #getTotalReplies()}.
+     *
+     * @return true if the comment has one or more replies, false otherwise.
+     */
+    public boolean hasAnyReply() {
+        return this.totalReplies != null && this.totalReplies > 0;
     }
 
+    /**
+     * Returns an unmodifiable view of the replies to this comment.
+     * Modifications to the reply list should be done via {@link #addReply(Comment)}
+     * and {@link #removeReply(Comment)}.
+     *
+     * @return An unmodifiable list of replies.
+     */
+    public List<Comment> getReplies() {
+        return Collections.unmodifiableList(this.replies);
+    }
 
-    public void removeReply(Comment reply) {
-        if (this.replies != null) {
-            this.replies.remove(reply);
+    /**
+     * Adds a reply to this comment and sets up the bidirectional relationship.
+     * Also ensures the reply is associated with the same review as this comment.
+     *
+     * @param reply The comment to add as a reply.
+     */
+    public void addReply(Comment reply) {
+        this.replies.add(reply);
+        reply.setParent(this);
+        if (this.getReview() != null) {
+            reply.setReview(this.getReview());
         }
-        reply.setParent(null);
+        // Note: 'totalReplies' (and thus 'hasReplies()') will only update
+        // in the database and reflect on this entity instance upon the next fetch.
+    }
+
+    /**
+     * Removes a reply from this comment and clears the bidirectional relationship.
+     *
+     * @param reply The comment to remove.
+     */
+    public void removeReply(Comment reply) {
+        boolean removed = this.replies.remove(reply);
+        if (removed) {
+            reply.setParent(null);
+        }
+        // Note: 'totalReplies' (and thus 'hasReplies()') will only update
+        // in the database and reflect on this entity instance upon the next fetch.
     }
 }

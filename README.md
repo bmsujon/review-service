@@ -108,16 +108,17 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 
 ## Database Schema
 
+## Database Schema
+
 ### Reviews Table
 
 - `id`: BIGSERIAL, Primary key
-- `review_type`: VARCHAR(255), Type of the review (e.g., COMPANY_REVIEW, PRODUCT_REVIEW)
-- `title`: VARCHAR(255), Title of the review
-- `content_html`: TEXT, Main content of the review in HTML format
+- `review_type`: VARCHAR(255), Type of the review (e.g., COMPANY_REVIEW, PRODUCT_REVIEW, SERVICE_REVIEW)
+- `title`: VARCHAR(255), Title of the review (NOT NULL)
+- `content_html`: TEXT, Main content of the review in HTML format (NOT NULL)
 - `ip_address`: VARCHAR(45), IP address of the reviewer
 - `like_count`: INTEGER, Number of likes (default: 0)
 - `dislike_count`: INTEGER, Number of dislikes (default: 0)
-- `has_comment`: BOOLEAN, Indicates if the review has comments (default: FALSE)
 - `status`: VARCHAR(50), Status of the review (e.g., PENDING, APPROVED, REJECTED, default: 'PENDING')
 - `is_employee`: BOOLEAN, Indicates if the reviewer is an employee (default: FALSE)
 - `dept`: VARCHAR(100), Department of the employee (if applicable)
@@ -138,13 +139,13 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 - `id`: BIGSERIAL, Primary key
 - `parent_id`: BIGINT, Foreign key referencing another comment (for replies)
 - `review_id`: BIGINT, Foreign key referencing `reviews` (ON DELETE CASCADE)
-- `user_name`: VARCHAR(100), Name of the user who commented
-- `content`: TEXT, Content of the comment
+- `user_name`: VARCHAR(100), User identifier (e.g., system username, if applicable)
+- `content`: TEXT, Content of the comment (NOT NULL)
 - `ip_address`: VARCHAR(45), IP address of the commenter
 - `like_count`: INTEGER, Number of likes (default: 0)
 - `dislike_count`: INTEGER, Number of dislikes (default: 0)
 - `status`: VARCHAR(50), Status of the comment (e.g., ACTIVE, HIDDEN, DELETED, default: 'ACTIVE')
-- `commenter_name`: VARCHAR(100), Name of the commenter (default: 'Anonymous')
+- `commenter_name`: VARCHAR(100), Display name of the commenter (default: 'Anonymous')
 - `created_by`: UUID, ID of the user who created the record
 - `updated_by`: UUID, ID of the user who last updated the record
 - `created_at`: TIMESTAMP WITH TIME ZONE, Timestamp of creation (default: CURRENT_TIMESTAMP)

@@ -61,7 +61,6 @@ class ReviewServiceTest {
                 .workEndDate(fixedWorkEndDate)
                 .likeCount(10)
                 .dislikeCount(1)
-                .hasComment(false)
                 .status(ReviewStatus.APPROVED)
                 .build();
         review.setCreatedAt(Instant.now().minusSeconds(3600));
@@ -119,7 +118,6 @@ class ReviewServiceTest {
                 .reviewerName(reviewCreateRequest.reviewerName()) // Set from request
                 .likeCount(0) // New reviews should start with 0 likes
                 .dislikeCount(0) // New reviews should start with 0 dislikes
-                .hasComment(false) // New reviews typically don't have comments initially
                 .status(ReviewStatus.PENDING) // Assuming PENDING is the initial status for new reviews
                 .build();
         expectedSavedReview.setCreatedAt(testInstant);
@@ -146,7 +144,7 @@ class ReviewServiceTest {
         assertEquals(expectedSavedReview.getWorkEndDate(), reviewResponse.workEndDate());
         assertEquals(expectedSavedReview.getLikeCount(), reviewResponse.likeCount());
         assertEquals(expectedSavedReview.getDislikeCount(), reviewResponse.dislikeCount());
-        assertEquals(expectedSavedReview.getHasComment(), reviewResponse.hasComment());
+        assertEquals(expectedSavedReview.hasAnyComment(), reviewResponse.hasComment());
         assertEquals(expectedSavedReview.getStatus(), reviewResponse.status());
         assertEquals(reviewCreateRequest.reviewerName(), reviewResponse.reviewerName()); // Assert reviewerName from request
         assertEquals(0, reviewResponse.totalComments()); // New review should have 0 comments
@@ -175,7 +173,6 @@ class ReviewServiceTest {
                 .reviewerName("Anonymous") // Expected default
                 .likeCount(0)
                 .dislikeCount(0)
-                .hasComment(false)
                 .status(ReviewStatus.PENDING) // Expected PENDING status
                 .build();
         expectedSavedReview.setCreatedAt(testInstant);
@@ -223,7 +220,7 @@ class ReviewServiceTest {
                 .ipAddress(pendingStatusRequest.ipAddress())
                 .reviewerName(pendingStatusRequest.reviewerName())
                 .status(ReviewStatus.PENDING) // Explicitly checking this
-                .likeCount(0).dislikeCount(0).hasComment(false)
+                .likeCount(0).dislikeCount(0)
                 .build();
         expectedSavedReview.setCreatedAt(testInstant);
         expectedSavedReview.setUpdatedAt(testInstant);
@@ -270,7 +267,7 @@ class ReviewServiceTest {
         assertEquals(review.getWorkEndDate(), reviewResponse.workEndDate());
         assertEquals(review.getLikeCount(), reviewResponse.likeCount());
         assertEquals(review.getDislikeCount(), reviewResponse.dislikeCount());
-        assertEquals(review.getHasComment(), reviewResponse.hasComment());
+        assertEquals(review.hasAnyComment(), reviewResponse.hasComment());
         assertEquals(review.getStatus(), reviewResponse.status());
         assertEquals(review.getReviewerName(), reviewResponse.reviewerName());
         assertEquals(0, reviewResponse.totalComments()); // DTO mapping handles null from entity, or it's 0 from setUp
@@ -394,7 +391,6 @@ class ReviewServiceTest {
                 .workEndDate(fixedWorkEndDate)
                 .likeCount(11) // Expected like count after increment
                 .dislikeCount(1)
-                .hasComment(false)
                 .status(ReviewStatus.APPROVED)
                 .build();
         reviewAfterLike.setCreatedAt(testInstant);
@@ -456,7 +452,6 @@ class ReviewServiceTest {
                 .workEndDate(fixedWorkEndDate)
                 .likeCount(10)
                 .dislikeCount(2) // Expected dislike count after increment
-                .hasComment(false)
                 .status(ReviewStatus.APPROVED)
                 .build();
         reviewAfterDislike.setCreatedAt(testInstant);
@@ -510,7 +505,6 @@ class ReviewServiceTest {
                 .ipAddress("127.0.0.1")
                 .likeCount(0)
                 .dislikeCount(0)
-                .hasComment(false)
                 .status(ReviewStatus.PENDING)
                 .reviewerName("Tester")
                 .totalComments(null) // Explicitly set totalComments to null

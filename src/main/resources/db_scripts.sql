@@ -9,12 +9,12 @@
 CREATE TABLE reviews (
     id BIGSERIAL PRIMARY KEY,
     review_type VARCHAR(255) NOT NULL,
-    title VARCHAR(255),
-    content_html TEXT,
+    title VARCHAR(255) NOT NULL, -- Changed: Made NOT NULL
+    content_html TEXT NOT NULL,   -- Changed: Made NOT NULL
     ip_address VARCHAR(45),
     like_count INTEGER NOT NULL DEFAULT 0,
     dislike_count INTEGER NOT NULL DEFAULT 0,
-    has_comment BOOLEAN NOT NULL DEFAULT FALSE,
+    -- has_comment BOOLEAN NOT NULL DEFAULT FALSE, -- Removed: No longer in Review entity
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     is_employee BOOLEAN NOT NULL DEFAULT FALSE,
     dept VARCHAR(100),
@@ -42,8 +42,8 @@ CREATE TABLE comments (
     id BIGSERIAL PRIMARY KEY,
     parent_id BIGINT,
     review_id BIGINT NOT NULL,
-    user_name VARCHAR(100),
-    content TEXT NOT NULL,
+    user_name VARCHAR(100), -- As per Comment entity, purpose to be clarified in code
+    content TEXT NOT NULL,  -- Matches @NotBlank in Comment entity
     ip_address VARCHAR(45),
     like_count INTEGER NOT NULL DEFAULT 0,
     dislike_count INTEGER NOT NULL DEFAULT 0,
@@ -65,7 +65,7 @@ CREATE INDEX idx_comments_created_at ON comments(created_at);
 
 -- Optional: Add comments to tables and columns for better understanding
 COMMENT ON TABLE reviews IS 'Stores review information submitted by users.';
-COMMENT ON COLUMN reviews.review_type IS 'Type of the review (e.g., COMPANY_REVIEW, PRODUCT_REVIEW).';
+COMMENT ON COLUMN reviews.review_type IS 'Type of the review (e.g., POSITIVE, NEGATIVE, NEUTRAL).'; -- Updated example based on ReviewType
 COMMENT ON COLUMN reviews.status IS 'Current status of the review (e.g., PENDING, APPROVED, REJECTED).';
 
 COMMENT ON TABLE comments IS 'Stores comments made on reviews, supporting threaded replies.';

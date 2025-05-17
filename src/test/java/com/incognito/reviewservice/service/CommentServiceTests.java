@@ -58,7 +58,6 @@ class CommentServiceTests {
                 .dislikeCount(0)
                 .commenterName("Original Commenter")
                 .status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
-                .hasReplies(false)
                 .totalReplies(0)
                 .parent(null)
                 .build();
@@ -78,7 +77,6 @@ class CommentServiceTests {
                 .dislikeCount(comment.getDislikeCount())
                 .commenterName(comment.getCommenterName())
                 .status(comment.getStatus())
-                .hasReplies(comment.isHasReplies())
                 .totalReplies(comment.getTotalReplies())
                 .parent(comment.getParent())
                 .build();
@@ -102,7 +100,7 @@ class CommentServiceTests {
         assertEquals(likedComment.getCreatedAt(), response.createdAt());
         assertEquals(likedComment.getUpdatedAt(), response.updatedAt());
         assertEquals(likedComment.getStatus(), response.status());
-        assertEquals(likedComment.isHasReplies(), response.hasReplies());
+        assertEquals(likedComment.hasAnyReply(), response.hasReplies());
         assertEquals(likedComment.getCommenterName(), response.commenterName());
         assertEquals(likedComment.getTotalReplies(), response.totalReplies());
 
@@ -120,7 +118,6 @@ class CommentServiceTests {
                 .dislikeCount(comment.getDislikeCount() + 1)
                 .commenterName(comment.getCommenterName())
                 .status(comment.getStatus())
-                .hasReplies(comment.isHasReplies())
                 .totalReplies(comment.getTotalReplies())
                 .parent(comment.getParent())
                 .build();
@@ -144,7 +141,7 @@ class CommentServiceTests {
         assertEquals(dislikedComment.getCreatedAt(), response.createdAt());
         assertEquals(dislikedComment.getUpdatedAt(), response.updatedAt());
         assertEquals(dislikedComment.getStatus(), response.status());
-        assertEquals(dislikedComment.isHasReplies(), response.hasReplies());
+        assertEquals(dislikedComment.hasAnyReply(), response.hasReplies());
         assertEquals(dislikedComment.getCommenterName(), response.commenterName());
         assertEquals(dislikedComment.getTotalReplies(), response.totalReplies());
 
@@ -165,7 +162,6 @@ class CommentServiceTests {
                 .status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
                 .likeCount(0)
                 .dislikeCount(0)
-                .hasReplies(false)
                 .totalReplies(0)
                 .parent(null)
                 .build();
@@ -215,7 +211,6 @@ class CommentServiceTests {
                 .status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
                 .likeCount(0)
                 .dislikeCount(0)
-                .hasReplies(false)
                 .totalReplies(0)
                 .parent(null)
                 .build();
@@ -267,7 +262,6 @@ class CommentServiceTests {
                 .status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
                 .likeCount(5)
                 .dislikeCount(1)
-                .hasReplies(true)
                 .totalReplies(1)
                 .build();
         // Set BaseEntity fields after building
@@ -284,7 +278,6 @@ class CommentServiceTests {
                 .status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
                 .likeCount(0)
                 .dislikeCount(0)
-                .hasReplies(false)
                 .totalReplies(0)
                 .build();
         // Set BaseEntity fields after building
@@ -330,7 +323,7 @@ class CommentServiceTests {
 
         Comment comment1 = Comment.builder().id(1L).content("Comment 1").review(review)
                 .commenterName("User1").status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
-                .likeCount(2).dislikeCount(0).hasReplies(true).totalReplies(1)
+                .likeCount(2).dislikeCount(0).totalReplies(1)
                 .build();
         comment1.setCreatedAt(fixedTime.minusSeconds(200));
         comment1.setUpdatedAt(fixedTime.minusSeconds(100));
@@ -338,7 +331,7 @@ class CommentServiceTests {
 
         Comment comment2 = Comment.builder().id(2L).content("Comment 2").review(review)
                 .commenterName("User2").status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
-                .likeCount(5).dislikeCount(1).hasReplies(false).totalReplies(0)
+                .likeCount(5).dislikeCount(1).totalReplies(0)
                 .build();
         comment2.setCreatedAt(fixedTime.minusSeconds(150));
         comment2.setUpdatedAt(fixedTime.minusSeconds(50));
@@ -363,7 +356,7 @@ class CommentServiceTests {
         assertEquals(comment1.getLikeCount(), response1.likeCount());
         assertEquals(comment1.getDislikeCount(), response1.dislikeCount());
         assertEquals(comment1.getStatus(), response1.status());
-        assertEquals(comment1.isHasReplies(), response1.hasReplies());
+        assertEquals(comment1.hasAnyReply(), response1.hasReplies());
         assertEquals(comment1.getTotalReplies(), response1.totalReplies());
         assertEquals(comment1.getCreatedAt(), response1.createdAt());
         assertEquals(comment1.getUpdatedAt(), response1.updatedAt());
@@ -377,7 +370,7 @@ class CommentServiceTests {
         assertEquals(comment2.getLikeCount(), response2.likeCount());
         assertEquals(comment2.getDislikeCount(), response2.dislikeCount());
         assertEquals(comment2.getStatus(), response2.status());
-        assertEquals(comment2.isHasReplies(), response2.hasReplies());
+        assertEquals(comment2.hasAnyReply(), response2.hasReplies());
         assertEquals(comment2.getTotalReplies(), response2.totalReplies());
         assertEquals(comment2.getCreatedAt(), response2.createdAt());
         assertEquals(comment2.getUpdatedAt(), response2.updatedAt());
@@ -395,7 +388,7 @@ class CommentServiceTests {
 
         Comment reply1 = Comment.builder().id(2L).content("Reply 1").review(review).parent(comment)
                 .commenterName("ReplyUser1").status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
-                .likeCount(1).dislikeCount(0).hasReplies(false).totalReplies(0)
+                .likeCount(1).dislikeCount(0).totalReplies(0)
                 .build();
         reply1.setCreatedAt(fixedTime.minusSeconds(50));
         reply1.setUpdatedAt(fixedTime.minusSeconds(20));
@@ -403,7 +396,7 @@ class CommentServiceTests {
 
         Comment reply2 = Comment.builder().id(3L).content("Reply 2").review(review).parent(comment)
                 .commenterName("ReplyUser2").status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
-                .likeCount(0).dislikeCount(0).hasReplies(false).totalReplies(0)
+                .likeCount(0).dislikeCount(0).totalReplies(0)
                 .build();
         reply2.setCreatedAt(fixedTime.minusSeconds(30));
         reply2.setUpdatedAt(fixedTime.minusSeconds(10));
@@ -430,7 +423,7 @@ class CommentServiceTests {
         assertEquals(reply1.getLikeCount(), response1.likeCount());
         assertEquals(reply1.getDislikeCount(), response1.dislikeCount());
         assertEquals(reply1.getStatus(), response1.status());
-        assertEquals(reply1.isHasReplies(), response1.hasReplies());
+        assertEquals(reply1.hasAnyReply(), response1.hasReplies());
         assertEquals(reply1.getTotalReplies(), response1.totalReplies());
         assertEquals(reply1.getCreatedAt(), response1.createdAt());
         assertEquals(reply1.getUpdatedAt(), response1.updatedAt());
@@ -444,7 +437,7 @@ class CommentServiceTests {
         assertEquals(reply2.getLikeCount(), response2.likeCount());
         assertEquals(reply2.getDislikeCount(), response2.dislikeCount());
         assertEquals(reply2.getStatus(), response2.status());
-        assertEquals(reply2.isHasReplies(), response2.hasReplies());
+        assertEquals(reply2.hasAnyReply(), response2.hasReplies());
         assertEquals(reply2.getTotalReplies(), response2.totalReplies());
         assertEquals(reply2.getCreatedAt(), response2.createdAt());
         assertEquals(reply2.getUpdatedAt(), response2.updatedAt());
@@ -457,7 +450,7 @@ class CommentServiceTests {
     }
 
     @Test
-    void createComment_shouldSetHasRepliesToFalseInitially() {
+    void createComment_shouldSetHasAnyReplyToFalseInitially() {
         String commenterNameFromRequest = "Newbie Poster";
         CommentCreateRequest request = new CommentCreateRequest("New comment content", commenterNameFromRequest);
 
@@ -469,7 +462,6 @@ class CommentServiceTests {
                 .likeCount(0)
                 .dislikeCount(0)
                 .status(com.incognito.reviewservice.model.CommentStatus.ACTIVE)
-                .hasReplies(false)
                 .totalReplies(0)
                 .parent(null)
                 .build();
