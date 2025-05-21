@@ -1,14 +1,11 @@
 package com.incognito.reviewservice.service;
 
-import com.incognito.reviewservice.dto.ReviewCreateRequest;
-import com.incognito.reviewservice.dto.ReviewResponse;
-import com.incognito.reviewservice.entity.Review;
-import com.incognito.reviewservice.exception.ResourceNotFoundException;
-import com.incognito.reviewservice.model.ReviewType;
-import com.incognito.reviewservice.model.ReviewStatus;
-import com.incognito.reviewservice.repository.ReviewRepository;
-import jakarta.persistence.criteria.Predicate;
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.incognito.reviewservice.exception.BadRequestException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +14,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.incognito.reviewservice.dto.ReviewCreateRequest;
+import com.incognito.reviewservice.dto.ReviewResponse;
+import com.incognito.reviewservice.dto.ReviewStatsResponse;
+import com.incognito.reviewservice.entity.Review;
+import com.incognito.reviewservice.exception.ResourceNotFoundException;
+import com.incognito.reviewservice.model.ReviewStatus;
+import com.incognito.reviewservice.model.ReviewType;
+import com.incognito.reviewservice.repository.ReviewRepository;
+
+import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +33,16 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse createReview(ReviewCreateRequest request) {
+        if (request.workEndDate() != null) {
+            if (request.workStartDate() == null) {
+                // If workEndDate is provided, workStartDate must also be provided for a valid comparison.
+                throw new BadRequestException("Work start date must be provided if work end date is specified.");
+            }
+            if (!request.workEndDate().isAfter(request.workStartDate())) {
+                throw new BadRequestException("Work end date must be after work start date.");
+            }
+        }
+
         Review review = Review.builder()
                 .reviewType(request.reviewType())
                 .title(request.title())
@@ -119,7 +135,7 @@ public class ReviewService {
                 review.getIpAddress(),
                 review.getLikeCount(),
                 review.getDislikeCount(),
-                review.hasAnyComment(),
+                review.hasAnyComment(), // Corrected to hasAnyComment()
                 review.getStatus(),
                 review.getIsEmployee(),
                 review.getDept(),
@@ -133,5 +149,47 @@ public class ReviewService {
                 review.getReviewerName(),
                 review.getTotalComments() == null ? 0 : review.getTotalComments() // Handle null totalComments
         );
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewStatsResponse getReviewStats(String companyName, ReviewType reviewType) {
+        // Use the new repository methods for optimized statistics calculation
+        long totalReviews = reviewRepository.countFilteredReviews(companyName, reviewType);
+
+        if (totalReviews == 0) {
+            return ReviewStatsResponse.builder()
+                    .totalReviews(0)
+                    .countByReviewType(Map.of())
+                    .totalLikes(0)
+                    .totalDislikes(0)
+                    .averageLikesPerReview(0.0)
+                    .averageDislikesPerReview(0.0)
+                    .build();
+        }
+
+        Long totalLikesLong = reviewRepository.sumLikesFiltered(companyName, reviewType);
+        long totalLikes = (totalLikesLong == null) ? 0L : totalLikesLong;
+
+        Long totalDislikesLong = reviewRepository.sumDislikesFiltered(companyName, reviewType);
+        long totalDislikes = (totalDislikesLong == null) ? 0L : totalDislikesLong;
+
+        List<Object[]> reviewCountsByTypeRaw = reviewRepository.getReviewCountsByTypeFiltered(companyName, reviewType);
+        Map<ReviewType, Long> countByReviewType = reviewCountsByTypeRaw.stream()
+                .collect(Collectors.toMap(
+                        arr -> ReviewType.valueOf((String) arr[0]), // Convert String to ReviewType enum
+                        arr -> (Long) arr[1]
+                ));
+
+        Double averageLikesPerReview = totalReviews > 0 ? (double) totalLikes / totalReviews : 0.0;
+        Double averageDislikesPerReview = totalReviews > 0 ? (double) totalDislikes / totalReviews : 0.0;
+
+        return ReviewStatsResponse.builder()
+                .totalReviews(totalReviews)
+                .countByReviewType(countByReviewType)
+                .totalLikes(totalLikes)
+                .totalDislikes(totalDislikes)
+                .averageLikesPerReview(averageLikesPerReview)
+                .averageDislikesPerReview(averageDislikesPerReview)
+                .build();
     }
 }

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -84,7 +85,7 @@ public class CommentController {
     public ResponseEntity<Page<CommentResponse>> getCommentsByReviewId(
             @Parameter(description = "ID of the review whose comments are to be retrieved", required = true, example = "1")
             @PathVariable Long reviewId,
-            @ParameterObject @PageableDefault(size = 10, sort = "createdAt,desc") Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<CommentResponse> commentPage = commentService.getCommentsByReviewId(reviewId, pageable);
         return ResponseEntity.ok(commentPage);
     }

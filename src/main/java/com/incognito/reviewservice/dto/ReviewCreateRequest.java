@@ -51,8 +51,9 @@ public record ReviewCreateRequest(
     @Schema(description = "The date when the work/experience started (optional). Must be in the past or present.", example = "2022-01-15T00:00:00Z")
     Instant workStartDate,
 
+    // Optional field for work end date. Should be grater than workStartDate if provided.
     @PastOrPresent(message = "Work end date must be in the past or present")
-    @Schema(description = "The date when the work/experience ended (optional). Must be in the past or present.", example = "2023-01-15T00:00:00Z")
+    @Schema(description = "The date when the work/experience ended (optional). Must be in the past or present. And should be greater than workStartDate", example = "2023-01-15T00:00:00Z")
     Instant workEndDate,
 
     @Schema(description = "Name of the reviewer (optional).", example = "Jane Doe", defaultValue = "Anonymous")

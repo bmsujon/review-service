@@ -2,6 +2,7 @@ package com.incognito.reviewservice.controller;
 
 import com.incognito.reviewservice.dto.ReviewCreateRequest;
 import com.incognito.reviewservice.dto.ReviewResponse;
+import com.incognito.reviewservice.dto.ReviewStatsResponse; // Assume this DTO will be created
 import com.incognito.reviewservice.model.ReviewType; // Import ReviewType
 import com.incognito.reviewservice.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,7 @@ import org.springdoc.core.annotations.ParameterObject; // For Pageable in Swagge
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page; // Import Page
 import org.springframework.data.domain.Pageable; // Import Pageable
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault; // For default pagination
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -96,7 +98,8 @@ public class ReviewController {
             @RequestParam(required = false) String companyName,
             @Parameter(description = "Filter by review type", schema = @Schema(implementation = ReviewType.class))
             @RequestParam(required = false) ReviewType reviewType,
-            @ParameterObject @PageableDefault(size = 10, sort = "createdAt,desc") Pageable pageable) { // @ParameterObject for Pageable
+            @ParameterObject @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) { // @ParameterObject for Pageable
+
         Page<ReviewResponse> reviewPage = reviewService.getReviews(companyName, reviewType, pageable);
         return ResponseEntity.ok(reviewPage);
     }
@@ -139,5 +142,29 @@ public class ReviewController {
             @PathVariable Long reviewId) {
         ReviewResponse updatedReview = reviewService.incrementDislikeCount(reviewId);
         return ResponseEntity.ok(updatedReview);
+    }
+
+    @Operation(summary = "Get review statistics", description = "Retrieves statistics for reviews.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved review statistics",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ReviewStatsResponse.class))), // Updated schema
+            @ApiResponse(responseCode = "404", description = "No reviews found to generate statistics", // Adjusted description
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Object.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Object.class)))
+    })
+    @GetMapping("/stats")
+    public ResponseEntity<ReviewStatsResponse> getReviewStats( // Changed return type
+                @Parameter(description = "Filter by company name (case-insensitive partial match)", example = "Incognito")
+                @RequestParam(required = false) String companyName,
+                @Parameter(description = "Filter by review type", schema = @Schema(implementation = ReviewType.class))
+                @RequestParam(required = false) ReviewType reviewType) { // Removed Pageable
+                // The service method will need to be updated to return ReviewStatsResponse
+                // and not take Pageable if stats are a single object.
+                ReviewStatsResponse statsResponse = reviewService.getReviewStats(companyName, reviewType);
+                return ResponseEntity.ok(statsResponse);
     }
 }
