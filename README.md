@@ -8,7 +8,7 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 - **Spring Boot**: 3.4.5
 - **Spring Data JPA**: For database interactions
 - **PostgreSQL**: As the database
-- **Gradle**: 8.x for build automation
+- **Gradle**: 8.13
 - **SpringDoc OpenAPI UI**: 2.7.0 for API documentation
 - **Jakarta Validation**: For request validation
 - **Lombok**: To reduce boilerplate code
@@ -19,7 +19,7 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 ### Prerequisites
 
 - JDK 21
-- Gradle 8.x
+- Gradle 8.13
 - PostgreSQL
 
 ### Steps to Build and Run
@@ -108,8 +108,6 @@ A Spring Boot application providing REST APIs for managing reviews and comments 
 
 ## Database Schema
 
-## Database Schema
-
 ### Reviews Table
 
 - `id`: BIGSERIAL, Primary key
@@ -165,17 +163,23 @@ Run the tests using:
 src/
 ├── main/
 │   ├── java/com/incognito/reviewservice/
-│   │   ├── controller/       # REST controllers
+│   │   ├── ReviewserviceApplication.java # Main application class
+│   │   ├── config/           # Application configuration (e.g., WebConfig)
+│   │   ├── controller/       # REST API controllers
 │   │   ├── dto/              # Data Transfer Objects
-│   │   ├── entity/           # JPA entities
-│   │   ├── exception/        # Custom exceptions
-│   │   ├── model/            # Enums and models
+│   │   ├── entity/           # JPA entities (database tables)
+│   │   ├── exception/        # Custom exception classes and handlers
+│   │   ├── model/            # Enums, constants, and other model classes
 │   │   ├── repository/       # Spring Data JPA repositories
-│   │   └── service/          # Business logic
+│   │   └── service/          # Business logic services
 │   └── resources/
-│       ├── application.properties  # Configuration
-│       └── db_scripts.sql          # Database schema
+│       ├── application.properties  # Application configuration properties
+│       └── db_scripts.sql          # SQL scripts for database schema (if used)
 └── test/
-    └── java/com/incognito/reviewservice/  # Unit and integration tests
+    └── java/com/incognito/reviewservice/ # Test sources
+        ├── controller/       # Tests for controllers
+        ├── exception/        # Tests for exception handlers
+        ├── service/          # Tests for services
+        └──                   # Other tests (e.g., ReviewserviceApplicationTests.java)
 ```
 
