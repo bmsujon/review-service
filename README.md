@@ -183,3 +183,64 @@ src/
         └──                   # Other tests (e.g., ReviewserviceApplicationTests.java)
 ```
 
+## Future Enhancements
+
+The following features are planned for future development to transform the service into an enterprise-grade platform for internal feedback and reviews:
+
+**I. Foundational Enhancements: User, Company, and Role Management**
+
+1.  **Data Model Expansion:**
+    *   **Company Entity:** Introduce a `Company` entity to represent different companies within the enterprise.
+    *   **User Entity Enhancement:**
+        *   Associate users with a `Company`.
+        *   Add fields for user roles (e.g., `EMPLOYEE`, `ADMIN`, `COMPANY_ADMIN`).
+        *   Securely store authentication details.
+    *   **Review & Comment Entity Modification:**
+        *   Link reviews/comments to the `User` who created them.
+        *   Add an `isAnonymous` flag.
+        *   Add a `status` field (e.g., `PENDING_APPROVAL`, `PUBLISHED`, `HIDDEN`, `REJECTED`).
+        *   Associate reviews/comments with the `Company` of the posting user.
+
+2.  **Authentication and Authorization:**
+    *   Implement robust user authentication (e.g., Spring Security with JWT or OAuth2).
+    *   Develop role-based authorization to control access.
+
+3.  **API Development for Core Entities:**
+    *   **Company Management API:** CRUD operations for companies (super-admin restricted).
+    *   **User Management API:** User registration (with company association), profile updates.
+    *   **Role Management API:** Assign/revoke user roles (admin-only).
+
+**II. Core Feature Implementation: Posting and Moderation**
+
+1.  **Content Submission Flow:**
+    *   Modify review/comment creation endpoints to:
+        *   Capture authenticated user ID.
+        *   Allow anonymous posting option.
+        *   Set initial post `status` based on admin configuration.
+
+2.  **Content Moderation System:**
+    *   **Admin Configuration API:**
+        *   Endpoints for admins to set rules (e.g., mandatory verification for posts).
+    *   **Moderation API:**
+        *   Endpoints for admins to view, approve, reject, hide, or unhide posts.
+
+3.  **Content Visibility and Retrieval:**
+    *   Update review/comment retrieval APIs:
+        *   Ensure only `PUBLISHED` content is visible to regular employees (unless viewing their own non-published posts).
+        *   Allow admins to view content with other statuses.
+        *   Mask user details for anonymous posts.
+        *   Consider company-based filtering or cross-company visibility.
+
+**III. Supporting Tasks**
+
+1.  **Database Schema Updates:**
+    *   Update `db_scripts.sql` or implement migrations (e.g., Flyway/Liquibase).
+
+2.  **Service Layer Logic:**
+    *   Implement business logic for all new features in the service layer.
+
+3.  **API Documentation:**
+    *   Update OpenAPI/Swagger documentation for all changes.
+
+4.  **Testing:**
+    *   Write comprehensive unit and integration tests for new functionalities.
